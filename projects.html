@@ -1,0 +1,155 @@
+<html>
+<head>
+<title>ARC Projects</title>
+<style type="text/css">
+div > h2:first-child {
+    margin-top:0;
+}
+
+h2 {
+    font-size:24px;
+    text-transform:uppercase;
+    margin-bottom:5px;
+    border-bottom:1px solid #ccc;
+}
+
+h3 {
+    font-size:18px;
+    margin-bottom:0px;
+    font-style:italic;
+}
+
+p {
+    margin-top:0;
+    font-size:16px;
+}
+
+table, li, code {
+    font-size:16px;
+}
+
+ul, ol {
+    margin-top:0;
+}
+
+code {
+    display:block;
+    white-space:pre;
+    margin-bottom:1em;
+    border-left:2px solid #000;
+    padding-left:5px;
+    font-size:90%;
+    background-color:#efefef;
+}
+
+samp {
+    background-color:#efefef;
+    font-size:90%;
+}
+</style>
+</head>
+<body>
+<h2>Project 0: Git Going</h2>
+<p>Setup your VM, provision it and login (see <a href="http://github.com/PSU-OIT-ARC/vagrant-manifest">Development Environment</a>).</p>
+
+<p>In the <samp>/vagrant</samp> directory of your VM, create a new directory, <samp>tutorials</samp> and cd into it. Init a git repo with <samp>git init</samp>. Create a file, <samp>index.php</samp> with the following contents:</p>
+<code>&lt;?php phpinfo(); ?&gt;</code>
+
+<p>Add that file to your git repo with <samp>git add index.php; git commit -m "Initial commit"</samp></p>
+
+<h3>Create a VirtualHost</h3>
+<p>We need to create an Apache VirtualHost file, so you can serve up your <samp>/vagrant/tutorials</samp> directory on the web. Apache's vhost files are located in <samp>/etc/httpd/vhost.d</samp>. cd into that directory, and create the file <samp>tutorials.local.conf</samp> with the following contents:</p>
+<code>&lt;VirtualHost *:80&gt;
+    ServerName tutorials.local
+    ServerAlias tutorials.local.*
+    DocumentRoot /vagrant/tutorials
+    ErrorLog /var/log/httpd/tutorials.local.error_log
+    CustomLog /var/log/httpd/tutorials.local.access_log vhost
+
+    &lt;Directory /vagrant/tutorials&gt;
+        AllowOverride All
+        Options Indexes FollowSymLinks
+    &lt;/Directory&gt;
+&lt;/VirtualHost&gt;
+</code>
+
+<p>This vhost won't work until you reload apache: <samp>service httpd reload</samp></p>
+<p>Point your browser to http://tutorials.local.10.0.0.10.nip.io (you should see a PHP info page)</p>
+<p>How does this all work? When Apache receives an HTTP request, it examines the URL requested  to determine which vhost it should use to handle the request. It tries to find a match based on the ServerName or ServerAlias directives in each vhost file. Since, <strong>tutorials.local.</strong>10.0.0.10.nip.io matches the ServerAlias <strong>tutorials.local.*</strong>, Apache uses that vhost. Since the DocumentRoot is specified as /vagrant/tutorials, it will serve up the index file there.</p>
+
+<p>But what's with the nip.io, you ask? If you just pointed your browser to http://tutorials.local a DNS request would be sent out, asking for the IP address of tutorials.local (which won't exist). If we managed the DNS server ourselves, we could setup a DNS entry to map tutorials.local to 10.0.0.10 (the VM's IP address). But since we don't, we can use a fancy service like nip.io. <strong>nip.io's nameserver will return a DNS entry that maps the hostname to the IP address it sees in the second component of the URL</strong>. So when we query the DNS server for tutorials.local.10.0.0.10.nip.io, nip.io's nameserver will parse the hostname for the IP, and respond back with a DNS record like: <samp>tutorials.local.10.0.0.10.nip.io. 432000 IN A   10.0.0.10</samp></p>
+
+
+<h2>Project 1: Feedback Form</h2> 
+<p>Create a simple feedback form using PHP (feedback.php). The form should have three fields: name, email address and a textarea for the user to enter feedback. When the form is submitted, it should send an email to <samp>YOU@pdx.edu</samp> (where <samp>YOU</samp> is your own ODIN name). The email should contain the user's name and the feedback they entered. To make it easy for you to reply, set a <samp>Reply-To</samp> header on the email to the user's email address.</p>
+
+<p>After the form is processed and the email is sent, perform a 301 redirect to a "thank you" page (thanks.php).</p>
+
+<p>When processing the form on the server side, make sure the user completely fills out the form with a <a href="http://php.net/manual/en/filter.filters.validate.php">valid email address</a>, name, and feedback. If there are errors, redisplay the form with the relevant errors. Be sure to repopulate the form fields with the data the user entered so they don't have to retype it all!</p>
+
+<p>Make sure your page is safe from XSS (<a href="http://php.net/htmlspecialchars">htmlspecialchars</a> -- with the right arguments -- will help), and your code is safe from mail header injection.</p>
+
+<h2>Project 2: Feedback Form with a Database Backend</h2>
+<p>Modify <em>Project 1</em> so that instead of emailing you the feedback, the results are stored in a database table.</p>
+
+<p>The MySQL command line can be accessed by just typing <samp>mysql</samp> (this works since the root MySQL user doesn't have a password on your VM). Create a database, a table in that database, and a user with the proper privileges on that table. In your PHP code, connect to the database using the user you set.</p>
+
+<p>Make sure your <a href="http://stackoverflow.com/questions/60174/how-can-i-prevent-sql-injection-in-php">code isn't vulnerable to SQL injection</a>!</p>
+
+
+<h2>Project 3: Central Authentication Service</h2>
+<p>PSU uses a central authentication service (CAS) to handle authentication. CAS is a simple protocol, that you can hook into from scratch.</p>
+
+<p>Create a page, login.php, with the following contents:</p>
+<code>&lt;?php
+print_r($_GET);
+?&gt;
+</code>
+
+<p>Now, create a simple page (home.php) with a login link. When clicked, the link should send the user to:</p>
+<code>https://sso.pdx.edu/cas/login?service=http://tutorials.local.10.0.0.10.nip.io/login.php</code>
+<p>This assumes your pages are accessible at http://tutorials.local.10.0.0.10.nip.io. You need to <a href="http://php.net/manual/en/function.urlencode.php">URL encode</a> the <samp>service</samp> parameter</em> since it contains special characters.</p>
+
+<p>Now visit your home.php page, click the login link, and enter your ODIN credentials.</p>
+<p>After logging in, note you are redirected to http://tutorials.local.10.0.0.10.nip.io/login.php, where your "ticket" is displayed (because you put <samp>print_r($_GET);</samp> on that page).</p>
+
+<p>To finish the authentication, you need to verify that the ticket is valid with the CAS server. You need to send an HTTP request to:</p>
+<p>https://sso.pdx.edu/cas/proxyValidate?ticket=<strong>YOUR_TICKET</strong>&service=http://tutorials.local.10.0.0.10.nip.io</p>
+<p><em>Again, you may need to encode the <samp>service</samp> parameter of the URL</em>. Use PHP's curl bindings to do this.</p>
+
+<p>The HTTP response from the CAS server should contain some XML. If the ticket is valid, the XML will contain your username. Parse your username out, and set it to a $_SESSION['username'] variable. Then redirect the user to admin.php (just create a dummy page there for now). If the ticket is invalid, display an error.</p>
+
+<h2>Project 4: Feedback Form Admin</h2>
+<p>Now that authentication is working, create a page (admin.php) that returns, in an HTML table, all the feedback stored in the database. Make sure only you can access this page (check for the $_SESSION['username'] variable and make sure it matches your ODIN name).</p>
+
+<h2>Project 5: LDAP Group Checks</h2>
+<p>Edit your admin.php page so that anyone in the "arc", or "arcstaff" groups can view the page after logging in through CAS.</p>
+
+<p>PSU has an LDAP server available at ldap-login.oit.pdx.edu. You can query this server to figure out which groups a user belongs to. First, connect to the server:</p>
+<code>$connection = ldap_connect('ldap-login.oit.pdx.edu');</code>
+<p>Now we need to construct an LDAP query to determine if the user is in the "arc" or the "arcstaff" groups. To get <strong>all</strong> the groups a user belongs to, try this:</p>
+<code>$search = ldap_search($connection, 'dc=pdx,dc=edu', '(& (memberUid=mdj2) (objectclass=posixGroup))');
+$results = ldap_get_entries($connection, $search);
+print_r($results);
+</code>
+
+<p>You <em>could</em> iterate through all the results, and look for a "cn" attribute equal to "arcstaff" or "arc". Another way, is to filter the LDAP results even further:</p>
+
+<code>$search = ldap_search($connection, 'dc=pdx,dc=edu', '(& (| (cn=arc) (cn=arcstaff)) (memberUid=mdj2) (objectclass=posixGroup))');
+$results = ldap_get_entries($connection, $search);
+print_r($results);
+</code>
+
+<p><em>Pay particular attention to the third argument to the ldap_search function, so you know how ldap search queries are constructed.</em> It's a Lisp like syntax.</p>
+
+<p>With that, you can just check the <samp>$results['count']</samp> to see if it is greater than 0. If it is, you know the user is in the arc or arcstaff group.</p>
+
+<p>You will need to replace the username "mdj2" with the username you validated with CAS (which is stored in a session variable). <strong>As with all forms of untrusted user input, you need to sanitize it</strong> before using it. In this case, you need to sanitize the username when you pass it to the ldap_search function. Unfortunately, PHP lacks an LDAP sanitation function. However, <a href="http://www.ietf.org/rfc/rfc2254.txt">RFC 2254</a> describes the characters which need escaping: *, (, ), \, and NUL. Instead of escaping these characters, you are free to simply remove them. ODIN usernames should never contain them.</p>
+
+<h2>Project 6: Deleting Feedback with JQuery &amp; AJAX</h2>
+<p>Alter your admin.php page so that each row in the table has a delete link or button. When the button is clicked, construct a AJAX request using jQuery that sends a POST request to "delete.php", which will delete that entry from the feedback database.</p>
+
+<p>After a successful delete, the row should be removed from the DOM.</p>
+
+</body>
+</html>

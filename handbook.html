@@ -1,0 +1,1438 @@
+<!doctype html>
+<html>
+    <head>
+        <title>ARC Handbook</title>
+<script src="//code.jquery.com/jquery-1.11.2.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/8.4/highlight.min.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/8.4/styles/default.min.css">
+<script>
+function password(len, charSet) {
+    len = len || 10;
+    charSet = charSet || 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';    
+    var randomString = '';    
+    for (var i = 0; i < len; i++) {    
+        var randomPoz = Math.floor(Math.random() * charSet.length);    
+        randomString += charSet.substring(randomPoz,randomPoz+1);    
+    }    
+    return randomString;
+}
+
+/* Generate a table of contents based on a list of H1-H6 tags */
+function generateTableOfContents(elements, html, level, index){
+    index = index || 0;
+
+    // base case, nothing left in the list
+    if(index >= elements.length){
+        return index;
+    }
+
+    var element = $(elements[index]);
+    // change an H1 tag into a number
+    var this_level = parseInt(element.prop("tagName").replace("H", ""));
+
+    // initialize the starting level based on the first level if it isn't defined
+    level = level || this_level;
+
+    if(this_level == level){
+        // if we're on the right level, just add an <li> element, and recurse to see if this heading has any children
+        var text = element.text();
+        // set the id on the heading element so anchors work
+        element.attr('id', text.toLowerCase().replace(/\s+/g, '-').replace(/[^A-Za-z0-9-]/g, '').replace(/-+/g, '-'));
+        html.push("<li><a href='#" + element.attr('id') + "'>" + text + "</a>");
+        index = generateTableOfContents(elements, html, this_level, index + 1);
+        html.push("</li>");
+    } else if(this_level > level){
+        // if the level is (for example) H1, and this tag is an H2, we need to create a sublist, and recurse
+        html.push("<ol>");
+        index = generateTableOfContents(elements, html, this_level, index);
+        html.push("</ol>");
+    } else if(this_level < level){
+        // we're on (for example) the H2 level, but this tag is an H1...there is nothing to do, but bottom out on the recursion
+        return index; 
+    }
+
+    // add the sibling heading
+    return generateTableOfContents(elements, html, this_level, index);
+}
+
+
+$(document).ready(function(){
+    // to make copying and pasting easier, we generate a password for any elements that have the class "insert-password" 
+    $('.insert-password').each(function(){
+        $(this).text(password);
+    });
+
+    // generate a table of contents
+    var html = ["<ol>"];
+    generateTableOfContents($('h1, h2, h3, h4, h5, h6'), html);
+    html.push("</ol>");
+    $('#toc').append(html.join("\n"));
+
+    //hljs.configure({useBR: true});
+
+    $('div.code').each(function(i, block) {
+          hljs.highlightBlock(block);
+    });
+});
+
+</script>
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap.min.css">
+<style type="text/css">
+body h1:first-child {
+    counter-reset:h1;
+}
+
+.code {
+    white-space:pre;
+    font-family:"courier new", "monospaced";
+}
+
+img {
+    padding:10px;
+    border:3px solid #dddddd;
+}
+
+h1, h2, h3, h4, h5, h6, #toc {
+    text-transform: capitalize;
+}
+
+.same-case {
+    text-transform: none !important;
+}
+
+h1 {
+    counter-increment:h1;
+    counter-reset: h2 h3 h4 h5 h6;
+}
+
+h2 {
+    counter-increment:h2;
+    counter-reset: h3 h4 h5 h6;
+}
+
+h3 {
+    counter-increment:h3;
+    counter-reset: h4 h5 h6;
+}
+
+h4 {
+    counter-increment:h4;
+    counter-reset: h5 h6;
+}
+
+h5 {
+    counter-increment:h5;
+    counter-reset: h6;
+}
+
+h6 {
+    counter-increment:h6;
+}
+
+h1:before {
+    content: counter(h1) ". "; 
+}
+
+h2:before {
+    content: counter(h1) "." counter(h2) " "; 
+}
+
+h3:before {
+    content: counter(h1) "." counter(h2) "." counter(h3) " "; 
+}
+
+h4:before {
+    content: counter(h1) "." counter(h2) "." counter(h3) "." counter(h4) " "; 
+}
+
+h5:before {
+    content: counter(h1) "." counter(h2) "." counter(h3) "." counter(h4) "." counter(h5) " "; 
+}
+
+h6:before {
+    content: counter(h1) "." counter(h2) "." counter(h3) "." counter(h4) "." counter(h5) "." counter(h6) " "; 
+}
+
+.page-title {
+    font-size:36px;
+}
+
+.checklist li, .checklist {
+    padding-left: 0;
+    margin-left: 0;
+    list-style-type: none;
+}
+
+.checklist li:before {
+    content: '\2610 ';
+    padding-right: 3px;
+    font-size:120%;
+}
+
+.hostname {
+    padding: 2px 4px;
+    font-size: 90%;
+    color: #c7254e;
+    background-color: #f9f2f4;
+    border-radius: 4px;
+}
+
+div.code {
+    margin-bottom:10px;
+}
+
+dt {
+    margin-top:10px;
+}
+
+dt:first-child {
+    margin-top:0px;
+}
+
+</style>
+</head>
+<body class="container">
+<p class="page-title">ARC Handbook</p>
+<p>So you've gone through the interview process and you're finally here in Academic and Research Computing. Congratulations, and welcome.</p>
+
+
+<div id="toc"></div>
+
+<h1>First Day</h1>
+<p>This will be a busy day for you. An ARC staffer will help you get all this boilerplate stuff done.</p>
+
+<h2>Find a Workstation</h2>
+<p>You get your choice of running Windows, Mac, or Linux. The computer you choose today will (likely) be your computer for the remainder of your time with ARC. Choose wisely. If you're going with Windows, fear not! You'll only get ridiculed every once-in-a-while by those smug Mac people.</p>
+
+<h2>Install the Tools</h2> 
+<p>At a bare minimum, you need:</p>
+<ol>
+    <li><a href="https://www.vagrantup.com/downloads.html">Vagrant</a> - for using VMs easily</li>
+    <li><a href="https://www.virtualbox.org/wiki/Downloads">Virtualbox</a> - for running VMs</li>
+    <li><a href="http://dev.mysql.com/downloads/workbench/">MySQL Workbench</a> - for interacting with MySQL</li>
+    <li><a href="http://www.pgadmin.org/download/">pgadmin</a> - for interacting with postgres</li>
+    <li><a href="http://www.chiark.greenend.org.uk/~sgtatham/putty/download.html">Putty (on Windows)</a> - for SSHing</li>
+</ol>
+
+<p>If you don't have a "high account" or admin privileges on your computer, have an ARC staffer help you install these things.</p>
+
+<h2>Get a research shell account</h2>
+<p>To get access to the <a href="#arc-systems">ARC systems</a>, you need a "research shell account". Forcibly demand an ARC staffer send this ticket to <samp>cis-requests@pdx.edu</samp>:</p>
+<pre>Please create a research shell account for odin user $foobar. Set the shell to bash, and add them to the "arc" group.
+
+Thank you kindly,
+
+ARC
+</pre>
+
+<p>It's important to specify that your shell be bash, otherwise you'll end up with tcsh or worse.</p>
+
+<h2>Get added to the Email lists</h2>
+<p>ARC has two mailing lists: consultants@pdx.edu and oit-arc-group@pdx.edu. The "consultants" is an address we provide to external people so they can contact us easily. A few people outside of ARC are on the consultants list too. The oit-arc-group email is for <strong>internal use only</strong> and only ARC folks are on it. It's useful if you want to get a message out to the group about system changes, or <a href="http://brandonconway.github.io/drupal-blasters/">something cool you found on the internet</a>.</p>
+
+<p>Send an email to the boss of ARC requesting you get added to both email lists.</p>
+
+<h2>Get badge access</h2> 
+<p>As much as ARC employees like getting up from their desks to let you in, it's probably best if you could just let yourself in. Send an email to the ARC boss so your badge works on the ARC doors. Between 1 day and 6 months later, your PSU badge will work on the door.</p>
+
+<h2>Get RT Access</h2>
+<p><a href="http://support.oit.pdx.edu">RT</a> is a ticketing system used by OIT, and other groups. If you're going to be responding to tickets, you need access to it. Send yet another email to the boss of ARC to get you access to it.</p>
+
+<h2>Get Student Calendar Access</h2>
+<p>Students should post their working schedules on the ARC Student Employee Google calendar.</p>
+
+<h2>Get Github Access</h2>
+<p>ARC uses github a lot. You'll need a github account. If you don't have one, <a href="https://github.com/">sign up for one</a>. If you do have one, you <em>can</em> sign up for another account, if you want to keep your work stuff separate from your personal stuff. Send your github username to an ARC staffer so they can add you to the appropriate groups. Our organization is <a href="http://github.com/PSU-OIT-ARC/">PSU-OIT-ARC</a>.</p>
+
+<h2>Get Traq Access</h2>
+<p><a href="http://traq.research.pdx.edu">Traq</a> is a home grown ticket and time keeping application for projects. Ask an ARC staffer to create an account for you.</p>
+
+<h2>Create SSH Key</h2>
+<p>Once your research shell account is setup, SSH into hera.rc.pdx.edu, and run:</p>
+<pre>ssh-keygen # It is <strong>strongly</strong> recommended that you place a passphrase on the key.
+cat .ssh/id_rsa.pub &gt;&gt; .ssh/authorized_keys
+chmod 700 .
+</pre>
+<p>This will allow you to use key based authentication when you jump around on the ARC systems. (You need to update the permissions on your home directory since, by default, they aren't secure according to SSH). Some servers <em>only</em> allow key based authentication, while others <em>only</em> allow password based authentication.
+</p>
+
+<h2>Provision an offical ARC VM</h2>
+<p>This VM mirrors our production environment and has a bunch of services installed like PostgreSQL, MySQL, Elasticsearch, etc. Follow the instructions here: <a href="https://github.com/PSU-OIT-ARC/vagrant-manifest">https://github.com/PSU-OIT-ARC/vagrant-manifest</a></p>
+
+<hr />
+
+<div class="alert alert-info">
+    <strong>A note to web dev students:</strong> The information in the rest of this document mentions a lot of servers. In general, you won't ever need to login to any of these boxes. When you encounter something that says "SSH into abox.rc.pdx.edu" it should be read as "SSH into your local VM".
+</div>
+
+<hr />
+
+<h1>ARC Systems</h1>
+<p><em>This section is a brief overview of the systems you'll use in ARC. More extensive documentation about some of the systems appears later in this document.</em></p>
+
+<h2>Servers</h2>
+
+<p>You can use <a href="http://munin.oit.pdx.edu">munin to see a list of them with performance metrics</a>.</p>
+
+<h3>Login/Management</h3>
+<p>To get into the ARC systems, you need a research shell account. The account credentials will be the same as your ODIN account. If you're on campus, you should SSH into <code>hrimfaxi.oit.pdx.edu</code>. This machine is the jumping off point for most operations you'll perform on a daily basis. We call this our "management" box, because it is the only server that allows us to act as root over NFS. On every other server, if you try to use sudo to alter NFS files, it won't work. Hrimfaxi is only used by OIT people.</p>
+
+<p>If you're <strong>off campus</strong>, you first need to SSH into hera.rc.pdx.edu (or rc.pdx.edu, for short) and then go to hrimfaxi.rc.pdx.edu. Hera is the login box, and it is the only ARC box that allows SSH connections from anywhere. Non-ARC people with research accounts (typically, researchers and students) login to Hera as a jumping off point to ARC systems. ARC-staffers just use it to get from outside PSU into Hrimfaxi.</p>
+
+<h3>Compute</h3>
+<p>A couple beefy servers (circe.rc.pdx.edu, hecate.rc.pdx.edu) are provided by ARC to researchers so they can run <del>infinite loops</del> scientific programs. If you're doing systems work, you'll be logged into these machines to monitor resource consumption, kill rogue processes, and see what researchers are doing. But on the web dev site, you almost never use these boxes.</p>
+
+<h3>Web</h3>
+<p>There are dozens of ARC web servers. Essentially, every one of our website runs in a VM with a public IP address (if you're wondering who used up all the IPv4 address space, now you know). We generate an inventory of the web VMs automatically (TODO link). You will need to SSH into these web VMs for when altering apache vhosts, viewing logs, debugging, etc.</p>
+
+<p>There are two special web servers: merope.rc.pdx.edu and inert.rc.pdx.edu. Merope is used by ARC to stage websites and inert is used to host static only websites.</p>
+
+<h3>Database</h3>
+<p>phoebe.rc.pdx.edu and mnemosyne.rc.pdx.edu provide PostgreSQL and MySQL services.</p> 
+
+<h3>Misc Services</h3>
+<p>Elasticsearch, RabbitMQ, and Redis are provided on themis.rc.pdx.edu and harmonia.rc.pdx.edu. You should always connect to Themis.</p>
+
+<h3>GIS</h3>
+<p>TODO</p>
+
+<h3>Web Worker</h3>
+<p>Cron jobs and Celery workers run on hermes.rc.pdx.edu.</p>
+
+<h2>Shares</h2>
+<p>ARC has a few NFS mounts:</p>
+<dl>
+    <dt>/vol/www</dt>
+    <dd>This is where (with a few exceptions) all website shares are located. Each share usually represents a single website.</dd>
+
+    <dt>/vol/share</dt>
+    <dd>Research related groups can request a share in this directory to dump their files.</dd>
+
+    <dt>/vol/apps</dt>
+    <dd>ARC managed software packages are installed here.</dd>
+</dl>
+
+<p>These mounts are available on <em>most</em> ARC machines.</p>
+
+<h2>Subnets &amp; Firewall</h2>
+<p>In general, the <strong>131.252.42.0/24</strong> (or 131.252.42.* if globs are more readable) subnet is for general compute, management, and login boxes. The firewall allows you to SSH into these boxes from on campus (but not off campus -- with the exception of hera.rc.pdx.edu).</p>
+
+<p>The <strong>131.252.43.0/24</strong> (or 131.252.43.*) subnet is for ARC web servers. Firewall rules allow these machines to be accessed over port 80 and 443, but <strong>you can only SSH into these boxes from hera.rc.pdx.edu or hrimfaxi.oit.pdx.edu</strong>.</p>
+
+<p>The <strong>131.252.110.0/24</strong> (131.252.110.*) subnet is used for web servers as well.</p>
+
+<p>The <strong>131.252.112.0/24</strong> (131.252.112.*) subnet is used for servers that require tighter firewall rules (database servers).</p>
+
+<p>The firewall is generally configured to be as secure (and, as a side effect, annoying) as possible. You can usually make connections to any external host over port 80 or 443, but you sometimes can't SSH to external boxes (like using SSH to do a git pull from github.com).</p>
+
+<p>Firewall issues are hard to debug. Some hosts will have rules visible with iptables, and other times, the firewall rules will be applied by an appliance upstream.</p>
+
+<h2>Puppet</h2>
+<p>Many of the ARC systems are configured using puppet. Puppet is not managed by ARC, but by the cis-unix group. When you make changes to system configuration, you need to be sure to inform cis-unix@pdx.edu about the change. For example, if you install the package foobar with <samp>yum install foobar</samp>, send a ticket to cis-unix@pdx.edu:</p>
+<pre>
+Please add the package 'foobar' to the puppet config on circe.rc.pdx.edu.
+
+Thank you,
+</pre>
+
+<p>If you <em>don't</em> do that, when the machine is re-provisioned after an upgrade, the package will not be installed.</p>
+<p>If you change or remove configuration files that are managed by puppet, <strong>your changes will be overwritten in a matter of minutes by puppet</strong>. So you should send a ticket to cis-unix@pdx.edu <em>first</em> and have them apply the changes. In cases where you need to make quick changes, without fear of puppet overwriting your changes, you can run:</p>
+<pre>puppet-disable "Quick change needed on production vhost - johndoe" # replace johndoe with your username</pre>
+<p>Then send your ticket to cis-unix@pdx.edu, and tell them about the change, and the fact that you disabled puppet.</p>
+
+
+<h2>Logging</h2>
+<del>
+<p>Centralized logging is provided with <a href="http://logstash.net/">logstash</a>, which is running on logs.rc.pdx.edu. Logstash is configured to accept logs via the <a href="https://github.com/elasticsearch/logstash-forwarder">logstash-forwarder</a> protocol, and it writes the logs to our Elasticsearch instance. We use <a href="http://www.elasticsearch.org/overview/kibana/">Kibana</a> to view the logs. The viewer is available at <a href="http://logs.rc.pdx.edu">logs.rc.pdx.edu</a>.</p>
+
+<div class="alert alert-warning">Logstash does not clear out the data it puts in Elasticsearch, so it must be cleaned out manually. TODO say how they are deleted</div>
+
+<p>The iptable rules on logs.rc.pdx.edu whitelist all the hosts that are allowed to pipe logs to logstash (which listens on TCP port 5043). You won't be able to pipe things into logs.rc.pdx.edu from your computer.</p>
+</del>
+
+<p>Centralized logging sounded like a good idea, but in practice, we don't really use it. <code>tail -f logfile</code> just works better. Unfortunately, there is no known solution to giving users of our web VMs access to their HTTP or mail logs.</p>
+
+<h3>HTTP Access &amp; Error Logs</h3>
+<p>HTTP access and error logs for ARC Web VMs are stored on disk in /var/log/httpd. There is a logstash-forwarder process (courtesy of the unix team) running on each VM that ships those logs to logs.rc.pdx.edu, so we can view them in aggregate. A custom LogFormat is used for access logs. It just adds the HTTP Host header to the beginning of the log line so we can filter by that.</p>
+
+<h3>Django Logs</h3>
+<del>
+<p>Django logs can be shipped directly to logstash using <a href="https://github.com/PSU-OIT-ARC/stashward">stashward</a>. The <a href="https://github.com/PSU-OIT-ARC/django-arcutils">arcutils</a> package comes with stashward by default, and you can easily hook up logging by adding <code>LOGGING_CONFIG = 'arcutils.logging.basic'</code> to your settings file.</p>
+</del>
+<p>Again, this seemed like a good idea at the time, but we never really found it that useful. Django logs should just end up in the HTTP error log if you don't change the default logging configuration.</p> 
+
+<h2>Email Issues</h2>
+<p>By default emails sent from ARC web VMs are <strong>not</strong> delivered to non-@pdx.edu email addresses. This is to prevent VMs from sending SPAM when they get hacked. You will also have trouble sending email from your local VirtualBox VMs depending on your subnet and host OS. The ARC vagrant manifest sets up postfix in such a way, that all email is redirected back to root@localhost. This is to prevent embarrassing things from happening when you are developing.</p>
+
+<p>If an ARC web VM needs to send emails to non-@pdx.edu email addresses, then send a ticket to cis-unix@pdx.edu:</p>
+<pre>
+Please whitelist the VM foo.rc.pdx.edu so it can send emails to non-@pdx.edu email addresses. 
+
+Thank you,
+</pre>
+
+
+<h2>SELinux</h2>
+<p>SELinux is installed and running on (almost) every ARC machine. It does all sorts of things, but there are only a few things you actually need to know. It runs in one of these modes:</p>
+<pre>
+enforcing - SELinux security policy is enforced.
+permissive - SELinux prints warnings instead of enforcing.
+disabled - No SELinux policy is loaded.
+</pre>
+<p>Use the <code>sestatus</code> command to see what the status is.</p>
+
+<p>If a script that should work isn't, check <samp>/var/log/audit/audit.log</samp> to see if selinux is blocking things. The messages are completely opaque, but if you run your script multiple times, and a message is logged every time, it's a good indication SELinux is the problem. Unfortunately, SELinux doesn't always log things that it blocks (for reasons I don't understand), so it isn't entirely reliable. Changing into permissive mode will stop SElinux from blocking things, so you can retry your scripts to determine if, indeed, SELinux is the problem:</p>
+<pre>setenforce permissive
+# retry the website or script
+# If it works, SElinux is to blame
+# else, re-enable selinux with:
+setenforce enforcing
+</pre>
+
+<p>SElinux problems are common with PHP scripts that use shell_exec (or any related functions). SElinux is a common trigger of hard to track down problems with Python. Python will throw a MemoryError if it attempts to use ctypes, which many GIS packages use (the solution in this case is <code>setsebool httpd_tmp_exec on</code>).</p> 
+
+<p>If you are messing around with SELinux, make sure you get your changes in puppet by looping in cis-unix! Otherwise a reboot will reset everything you did.</p>
+
+<p>The ARC Vagrant box has SELinux disabled since it is more often than not more annoying than useful in a development context.</p>
+
+<h2>Backups</h2>
+<p>TODO</p>
+
+<h1>Application Services</h1>
+<p>ARC applications make use of a lot of different services. This section describes the most common services you'll use and our conventions when using them. Example commands and code are presented here. Services like Elasticsearch and PostgreSQL are running on your local ARC VM. When you're developing, use these local services instead of the production services.</p>
+
+<h2>Relational Databases (Postgres &amp; MySQL)</h2>
+<p>ARC is currently running Postgres 9.4 with Postgis 2.1, and MySQL 5.5.</p>
+
+<p>The default policy is to use postgres for new databases, because it has:</p>
+<ul>
+    <li>safe and sane defaults</li>
+    <li>postgis</li>
+    <li>transactional schema changes</li>
+</ul>
+
+<p>Unfortunately, Postgres is far more complex than MySQL, but it's a small price to pay for those key features.</p>
+
+<p>MySQL is used for legacy application, and for users who explicity request it. MySQL should be used when integration with Microsoft Access is required because MySQL has a good ODBC driver.</p>
+
+<table class="table table-condensed table-striped">
+    <thead>
+        <tr>
+            <th>Service</th>
+            <th>Environment</th>
+            <th>Host Alias (real name)</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>MySQL 5.5</td>
+            <td>Production</td>
+            <td>mysql.rc.pdx.edu (phoebe.rc.pdx.edu)</td>
+        </tr>
+        <tr>
+            <td>Postgres 9.4</td>
+            <td>Production</td>
+            <td>postgresql.rc.pdx.edu (phoebe.rc.pdx.edu)</td>
+        </tr>
+        <tr>
+            <td>Postgres 9.1</td>
+            <td>Old Production (new apps should not connect to it)</td>
+            <td>pgsql.rc.pdx.edu (mnemosyne.rc.pdx.edu)</td>
+        </tr>
+
+        <tr>
+            <td>MySQL 5.5</td>
+            <td>Staging</td>
+            <td>merope.rc.pdx.edu</td>
+        </tr>
+        <tr>
+            <td>Postgres 9.3</td>
+            <td>Staging</td>
+            <td>merope.rc.pdx.edu</td>
+        </tr>
+    </tbody>
+</table>
+
+<p>You should use the host alias name when connecting to a database server, since the machine's real name could change.</p>
+
+<p>The database servers are accessible to anyone on 131.252.*. SSL is not <em>required</em> to connect to the servers. However, you're welcome to use it. The SSL certs for mysql.rc.pdx.edu and pgsql.rc.pdx.edu are signed by the PSUCA, not a "real" CA.</p>
+
+<h3>Naming Conventions</h3>
+
+<p>The database name should match the name of your project, lowercased, with underscores for spaces. For example, the project "Foo Bar" would be "foo_bar". When creating a development or staging database, the database name should be suffixed with "_dev". You may optionally suffix your production database name with "_prod".</p>
+
+<p>For tables, use all lowercase names, with underscores separating words. Table names should be singular. Column names should be lowercase with words separated by underscores. Don't repeat the table name in the column, except in the case of the primary key (e.g. project_id, not id). Datetime fields should usually end with "_on" (created_on, modified_on, etc), and booleans should be prefixed with "is_" (is_active, is_published, etc).</p>
+
+
+<h3>PostgreSQL Notes</h3> 
+<p>For the project "Foobar" create a database and user like:</p>
+<pre>CREATE GROUP foobar_g; -- create a group first
+CREATE DATABASE foobar WITH OWNER = foobar_g; -- make the owner of the database the group
+CREATE USER foobar_l IN GROUP foobar_g PASSWORD '<span class="insert-password"></span>' -- create a user as a member of the group
+</pre>
+<p>Note the _l (lowercase L) and _g on the <strong>l</strong>oginuser and group. We create a group first, because...well, I don't know. That's just how it has always been done.</p>
+
+<p>To spatially enable the database (i.e. install postgis), just run <samp>CREATE EXTENSION postgis</samp>.</p>
+
+<p>Because some applications don't play nicely with Postgres schemas, favor keeping your data entirely in the public schema. It also makes it convenient not to have to run <samp>SET search_path TO my_schema, public;</samp> all the time.</p>
+
+<h3>MySQL Notes</h3> 
+<p>For the project "Foobar" create a database and user like:</p>
+<pre>CREATE DATABASE foobar;
+CREATE USER foobar_l@'131.252.%' IDENTIFIED BY "<span class="insert-password"></span>";
+GRANT ALL ON foobar.* TO foobar_l@'131.252.%';
+</pre>
+<p>Note the _l (lowercase L) on the <strong>l</strong>oginuser. Projects that use MySQL usually require all permissions, which is why we grant all on the database to the user. Also note we do <strong>not</strong> use the abbreviated form <samp>GRANT ALL ON foobar.* TO foobar_l@'131.252.%' IDENTIFIED BY 'somepassword'</samp> because MySQL will silently update the user's password if the user already exists (which is bad).</p>
+
+<p>Always use InnoDB tables unless you have a <em>very</em> good reason not to. The collation you should use is "utf8_unicode_ci". These settings are the server default, so you shouldn't need to mess with them.</p>
+
+<p>In MySQL, favor VARCHAR(255) over VARCHAR(50) (or any number less than 255). It takes up the same amount of space and you avoid most truncation problems (there is always someone with a 51 character long last name). If the data is fixed length (like a CSS hex color value), then use VARCHAR(6). If the column could be wider than 255 chars, use a TEXT field instead. <strong class="text-danger">Be aware that the total row length must be less than 8K</strong> and MySQL stores the first 768 bytes of every field in the row! If you have lots of TEXT or VARCHAR columns, this will be a problem.</p>  
+
+
+<h3>PostgreSQL &lt;=&gt; MySQL</h3> 
+
+<table class="table table-condensed table-striped">
+    <thead>
+        <tr>
+            <th>&nbsp;</th>
+            <th>Postgres</th>
+            <th>MySQL</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <th>Kill a Process</th>
+            <td><code>SELECT * FROM pg_stat_activity</code> then <code>SELECT pg_cancel_backend(procpid)</code> where procpid is from the procpid column.</td>
+            <td><code>SHOW FULL  PROCESSLIST</code> then <code>KILL ID</code> where ID is the Id column </td>
+        </tr>
+        <tr>
+            <th>Config</th>
+            <td><samp>/var/lib/pgsql/9.4/data</samp></td>
+            <td><samp>/etc/my.cnf</samp></td>
+        </tr>
+        <tr>
+            <th>Bin (useful when you need to use pg_config, since it isn't in your $PATH by default)</th> 
+            <td><samp>/usr/pgsql-9.4/bin</samp></td>
+            <td><samp>/usr/bin</samp></td>
+        </tr>
+        <tr>
+            <th>Restart</th>
+            <td><samp>service postgresql-9.4 restart</samp></td>
+            <td><samp>service mysqld restart</samp></td>
+        </tr>
+        <tr>
+            <th>Backup a Database</th>
+            <td><samp>pg_dumpall --globals-only &gt; backup.sql <br /> pg_dump database_name &gt;&gt; backup.sql</td>
+            <td><samp>mysqldump --user root --password --host mysql.rc.pdx.edu --triggers --routines --events databasename &gt; backup.sql</samp></td>
+        </tr>
+        <tr>
+            <th>Change Password</th>
+            <td><samp>ALTER USER johndoe WITH PASSWORD 'foobar';</samp></td>
+            <td><samp>SET PASSWORD FOR 'johndoe'@'131.252.%' = PASSWORD('foobar');</samp></td>
+        </tr>
+        <tr>
+            <th>Create a Superuser</th>
+            <td><samp>CREATE USER johndoe_a WITH PASSWORD 'foobar' LOGIN SUPERUSER</samp></td>
+            <td><pre>
+CREATE USER 'johndoe_a'@'%' IDENTIFIED BY 'some_pass';
+GRANT ALL PRIVILEGES ON *.* TO 'johndoe_a'@'%' WITH GRANT OPTION;
+</pre></td>
+        </tr>
+    </tbody>
+</table>
+
+
+
+<h2>RabbitMQ</h2>
+<p>RabbitMQ is a general purpose message queue that we really only use with <a href="http://celery.readthedocs.org/en/latest/index.html">Django Celery</a>. Celery allows you to perform work outside of the HTTP request-response cycle (like generating reports, and converting videos).</p>
+
+<p>To create a RabbitMQ vhost for the project <samp>foobar</samp></p>
+<pre>
+rabbitmqctl add_user foobar <span class="insert-password"></span> # the last argument is the password
+rabbitmqctl add_vhost /foobar # vhosts are prefixed by a forward slash by ARC conventions
+rabbitmqctl set_permissions -p /foobar foobar ".*" ".*" ".*"
+</pre>
+
+<p>If you're going to use RabbitMQ for anything else other than Celery, be aware there isn't a lot of in-house expertise with it.</p>
+
+<p>There is a GUI you can use locally: <a href="https://www.rabbitmq.com/management.html">https://www.rabbitmq.com/management.html</a></p>
+
+<p>The RabbitMQ service can be controlled with <samp>service rabbitmq-server {start|stop|status|rotate-logs|restart|condrestart|try-restart|reload|force-reload}</samp></p>
+
+
+<table class="table table-condensed table-striped">
+    <thead>
+        <tr>
+            <th>Service</th>
+            <th>Environment</th>
+            <th>Host</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>RabbitMQ 3.1.5</td>
+            <td>Production</td>
+            <td>themis.rc.pdx.edu</td>
+        </tr>
+        <tr>
+            <td>RabbitMQ 3.1.5</td>
+            <td>Staging</td>
+            <td>merope.rc.pdx.edu</td>
+        </tr>
+    </tbody>
+</table>
+
+<p>RabbitMQ is also running on harmonia.rc.pdx.edu, but no one uses it there. The RabbitMQ servers have iptables rules in place which specify which hosts can talk to RabbitMQ.</p>
+
+<h2>Elasticsearch</h2>
+<p>Elasticsearch is used to store data that should be, well, searchable. We do not treat ES as a persistent data store, so if you put something in it, you should be able to regenerate that data if need be. It is running on two servers. One is our designated master, which all writes and reads should be sent to. The replica is there in case things go down.</p>
+
+<table class="table table-condensed table-striped">
+    <thead>
+        <tr>
+            <th>Service</th>
+            <th>Environment</th>
+            <th>Host</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>Elasticsearch 1.2.4</td>
+            <td>Production (master)</td>
+            <td>themis.rc.pdx.edu</td>
+        </tr>
+        <tr>
+            <td>Elasticsearch 1.2.4</td>
+            <td>Production (replica)</td>
+            <td>harmonia.rc.pdx.edu</td>
+        </tr>
+        <tr>
+            <td>Elasticsearch 1.2.4</td>
+            <td>Staging (master)</td>
+            <td>merope.rc.pdx.edu</td>
+        </tr>
+    </tbody>
+</table>
+
+<p>There are some (pretty terrible) <a href="http://www.elastic.co/guide/en/elasticsearch/client/community/master/front-ends.html">GUIs you can use for ES</a>. Of them all, <a href="https://github.com/mobz/elasticsearch-head">elasticsearch-head</a> is the least terrible and most useful. You can install the plugins on your local VM, and then use port forwarding if you need to use the GUI with themis or harmonia.</p>
+
+<p><strong class="text-danger">Elasticsearch is completely unauthenticated</strong>. There are no "users". Any machine allowed in by the iptables rules can read and write to your Elasticsearch indexes. Indexes are created automatically, so be careful with typos. Your index name should be the name of your project, lowercased. If you need supplemental indexes or aliaes, prefix them with your project name (e.g. "oro-geometries").</p>
+
+<h2>Redis</h2>
+<p>Redis provides in-memory data structures for you to use like hashes, lists, and sets. It's useful for caching data. There's a very good chance you'll never need to use Redis for the applications you build here. But it is available if you need it.</p>
+
+<h2>LDAP</h2>
+<p>PSU uses LDAP to store information about groups and users. LDAP is useful in a lot of projects. At the time of this writing, you can send unauthenticated LDAP queries to ldap-login.oit.pdx.edu.</p>
+
+<pre><a href="http://explainshell.com/explain?cmd=ldapsearch+-x+-h+ldap-login.oit.pdx.edu+-b+%27dc%3Dpdx%2Cdc%3Dedu%27+uid%3Dmdj2">ldapsearch -x -h ldap-login.oit.pdx.edu -b 'dc=pdx,dc=edu' uid=mdj2</a></pre>
+
+<p>On ARC servers, you can just do <samp>ldapsearch -x uid=mdj2</samp>. This is great for testing and learning about LDAP, but you should not query like this in your web application.</p>
+
+<p>To use LDAP in an application, you should request an LDAP username and password from cis-unix@pdx.edu:</p>
+<pre>
+Please create an ldap user for the project foobar.
+
+Thank you,
+</pre>
+
+<p>Armed with your new username and password for LDAP, you should connect to the host <code>ldap-<strong>batch</strong>.oit.pdx.edu</code> (note the different host name). This host is beefier and lets you run tougher LDAP searches, but it requires authentication. You can connect to it using TLS (SSL) or not. Here's an example in Python using the `ldap3` package:</p>
+<div class="code">import ldap3
+import ssl
+
+server = ldap3.Server("ldap-bulk.oit.pdx.edu", tls=ldap3.Tls(
+    ca_certs_file="/etc/pki/tls/certs/ca-bundle.crt",
+    validate=ssl.CERT_REQUIRED,
+), use_ssl=True)
+
+conn = ldap3.Connection(
+    server,
+    auto_bind=True,
+    user="traq,ou=service,dc=pdx,dc=edu",
+    password="PASSWORD_HERE!!",
+    lazy=True,
+)
+
+with conn:
+    result = conn.search(
+        search_base="dc=pdx,dc=edu",
+        search_filter="(uid=mdj2)",
+        search_scope=ldap3.SEARCH_SCOPE_WHOLE_SUBTREE,
+        attributes=ldap3.ALL_ATTRIBUTES
+    )
+
+    print(conn.response)
+</div>
+<p>Usually, with SSL, <a href="http://stackoverflow.com/questions/1087227/validate-ssl-certificates-with-python">depending on your Python version</a>, you could still be MITM'd since Python may not check for a CN match on the host you're connecting to. But the smart folks who wrote the ldap3 package use the <a href="https://pypi.python.org/pypi/backports.ssl_match_hostname">match_hostname backport</a>. So you don't have to worry about it.
+</p>
+
+<p>The <a href="https://github.com/PSU-OIT-ARC/django-arcutils">django-arcutils</a> package has some useful LDAP stuff in it.</p>
+
+<h3>Special Considerations <span class="label label-danger">important</span></h3>
+<p>When querying LDAP in a web app, you must escape any user input (just like when you escape SQL statements constructed from user input). django-arcutils has an escape function built into the ldap module.</p>
+
+<p>Records that have <code>psuprivate=Y</code> <strong>should not</strong> be displayed if you're doing any kind of listing of LDAP information (like in an autocomplete form field).</p>
+
+<p>When displaying someone's name, you should display the "preferredcn" field. However, there have been some cases where that field is not present, so you have to fall back on the "cn" field</p>
+
+<p>Parsing out a first and last name is hard, and <a href="http://www.kalzumeus.com/2010/06/17/falsehoods-programmers-believe-about-names/">impossible to do in general</a>. django-arcutils has a method in the ldap module that does its best to do it though.</p>
+
+<h3>LDAP Searching examples</h3>
+<dl>
+    <dt>Get information about the odin user 'mdj2'</dt>
+    <dd><samp>ldapsearch -x uid=mdj2</samp></dd>
+
+    <dt>Fetch users with an odin username matching mdj* (excluding private records)</dt>
+    <dd><samp>ldapsearch -x "(& (uid=mdj*) (psuprivate=N))"</samp></dd>
+
+    <dt>Fetch users that have an odin name, or a cn that starts with "matt" (excluding private records)</dt>
+    <dd><samp>ldapsearch -x "(& (| (uid=matt*) (cn=matt*)) (psuprivate=N))"</samp></dd>
+
+    <dt>Get all users in the group 'resgrp116'</dt>
+    <dd><samp>ldapsearch -x "cn=resgrp116"</samp></dd>
+
+    <dt>Get all groups 'mdj2' is a member of</dt>
+    <dd><samp>ldapsearch -x "memberUid=mdj2"</samp></dd>
+</dl>
+
+<p>As you can see, the ldap search syntax uses prefix notation for creating boolean expressions. It's probably the only time you'll get to use something Lisp looking in ARC.</p>
+
+<h2>Crons</h2>
+<p>Cron jobs can be executed from hermes.rc.pdx.edu. Crons not tied to a specific web application should be run as "arcuser". Crons specific to web applications should run as the service user created for the website.</p>
+
+<p>Crons must be added to puppet, otherwise they will likely disappear unbeknownst to you. Send a ticket to cis-unix@pdx.edu to get the cron added:</p>
+<pre>
+Please add to svusr123's crontab on hermes.rc.pdx.edu:
+
+0 2 * * * /vol/www/example/prod/something.py &gt;/dev/null
+
+Thank you,
+</pre>
+
+<p>As a general rule, crons should be avoided. Consider alternative approaches like spawning a worker thread/process from your web app when a request comes in to do work. That is how django-arcutils handles clearing sessions.</p>
+
+<h2>Celery Workers</h2>
+<p>Hermes.rc.pdx.edu is available to run celery workers. The daemon should be puppetized and should run as whatever service user was setup for the application. Send a ticket to cis-unix@pdx.edu:</p>
+
+<pre>
+I need the following process to be running on hermes.rc. It needs to run as svusr114.
+
+/vol/www/vcp/prod/.env/bin/celery worker \
+--workdir=/vol/www/vcp/prod \
+--app=vcp.celery \
+--pidfile=/tmp/vcp_celery.pid \
+--umask=007 \
+--loglevel=INFO \
+--concurrency=2 \
+--detach \
+--logfile=celery.log
+
+Thank you,
+</pre>
+
+<h2>CAS - Central Authentication Service</h2>
+<p>PSU uses CAS 2.0 to authenticate users. This version of CAS is very simple. It works like this:</p>
+<ol>
+    <li>User visits your website</li>
+    <li>User indicates they want to authenticate (i.e. they click a login button)</li>
+    <li>Your app redirects the user to https://sso.pdx.edu/cas/login?service=https://YOUR-WEBSITE.com/some/page.php</li>
+    <li>The user enters their odin credentials on the PSU sign in page</li>
+    <li>The user is redirected back to https://YOUR-WEBSITE.com/some/page.php?<strong>ticket=abc123</strong></li>
+    <li>Your app sends a request to https://sso.pdx.edu/cas/proxyValidate?<strong>ticket=abc123&service=https://YOUR-WEBSITE.com/some/page.php</strong></li>
+    <li>The CAS server responds with an XML doc, that has something like <code>&lt;cas:user&gt;mdj2&lt;/cas:user&gt;</code> in it</li>
+    <li>Now you know that the user is mdj2, and you can create a session in your app</li>
+</ol>
+
+<p><em>Make sure you urlencode the "service" URL parameter (so "https://YOUR-WEBSITE.com/some/page.php" would become "https%3A%2F%2FYOUR-WEBSITE.com%2Fsome%2Fpage.php")</em>. It was not done in the instructions above for clarity.</p>
+
+<p>When you validate the ticket, you need to ensure the SSL certificate for the CAS server is signed by a certificate authority, and that the hostname matches the CN field on the cert. If you use a recent version of PHP and its curl bindings, this should be done for you automatically.</p>
+
+<p>If you're using Django, you can implement CAS fairly easily with <a href="https://github.com/PSU-OIT-ARC/djangocas">djangocas</a>.</p>
+
+
+<h2>The ARC CDN</h2>
+<p>ARC has a CDN (basically, a place to host static files that are commonly used on our projects like jQuery and Bootstrap), and the "N" consists of a single VM running in the PSU datacenter. But that's OK for now. Its URL is:</p>
+<ul>
+    <li><a href="http://cdn.research.pdx.edu/">http://cdn.research.pdx.edu/</a></li>
+    <li><a href="https://cdn.research.pdx.edu/"><strong>https</strong>://cdn.research.pdx.edu/</a></li>
+</ul>
+
+<p>The homepage has a manifest that lists what packages are available, and to give you a nice example that you can copy and paste. It is managed as a git repo: <a href="https://github.com/PSU-OIT-ARC/cdn">https://github.com/PSU-OIT-ARC/cdn</a></p>
+<p>The directory on /vol/www/cdn also contains some non-git managed files like FFMPEG, and a vagrant box. There isn't a good place for these, so we dump them into the CDN.
+</p>
+<p>The <a href="https://github.com/PSU-OIT-ARC/django-arcutils">arcutils</a> Django package sets up a <code>{% cdn_url 'jquery/2.1.1/jquery-2.1.1.min.js' %}</code> tag you can use in templates so you don't have to hard code cdn.research.pdx.edu yourself.</p>
+
+
+<h2>Shared Libraries</h2>
+<p>ARC maintains a few shared libraries, mostly Python/Django related. You should know about these, because it is very likely you will run into a problem that one of these solves:</p> 
+<ul>
+    <li><a href="https://github.com/PSU-OIT-ARC/django-arcutils">django-arcutils</a> - This is a collection of random utilities that you'll probably need on just about every django project you build.</li>
+    <li><a href="https://github.com/PSU-OIT-ARC/tableToCSV">tableToCSV</a> - This allows you to make a CSV export from an HTML table entirely on the client.</li>
+    <li><a href="https://github.com/PSU-OIT-ARC/django-perms">django-perms</a> - This package helps you add permissions checking functionality to your Django project.</li>
+    <li><a href="https://github.com/PSU-OIT-ARC/elasticmodels">elasticmodels</a> - This is a barebones interface to ES via the (deprecated) elasticutils package.</li>
+    <li><a href="https://github.com/PSU-OIT-ARC/django-file-resubmit">django-file-resubmit</a> - This preserves an uploaded file when a form validation error occurs (so the user doesn't have to re-upload it)</li>
+    <li><a href="https://github.com/PSU-OIT-ARC/djangocas">djangocas</a> - This provides CAS authentication in Django</li>
+    <li><a href="https://github.com/PSU-OIT-ARC/django-cloak">django-cloak</a> - This allows you to login as a particular user easily (similar to <samp>drush user-login</samp> in Drupal land)</li>
+</ul>
+
+<p>Most packages are on the Python Package Index (PyPI). If you create a package and push it to PyPI, make sure you give ownership permission to the PSU-OIT-ARC user.</p>
+
+
+<h2>Google Analytics</h2>
+<p>In addition to logstash, we use <a href="https://www.google.com/analytics/">Google Analytics</a> to monitor the traffic to our sites. Google Analytics allows us to grant other people (outside of ARC) read access to their data.</p>
+
+<p>Our Google Analytics account name is "ARC", and you can ask a staff member to add you to the account. All websites should have Google Analyics tracking on them, except when otherwise requested.</p>
+
+<h2>Continuous Integration</h2>
+<p><strong><a href="https://app.shippable.com/">Shippable</a></strong> is available to public and private projects on GitHub. You can use it to build your application and run unit tests, so you don't have to.</p>
+
+<p><strong>Travis CI</strong> is available to public projects on GitHub. You can use it to build your application and run unit tests, so you don't have to.</p>
+
+<h1>Other Technologies, Frameworks and Libraries We Use</h1>
+<p>In addition to the application services above, these are some other technologies, frameworks and libraries we use.</p>
+<ol>
+    <li><a href="http://getbootstrap.com/">Bootstrap</a> - for making our sites look boring, but consistent</li>
+    <li><a href="http://jquery.com/">jQuery</a> - for interacting with the DOM, and enhancing user experiences</li>
+    <li><a href="https://www.ffmpeg.org/">FFmpeg</a> - for converting video and audio files for the web</li>
+</ol>
+
+<p>Wyatt is our resident JavaScript and tooling expert. If you want to use fancy stuff like Angular, LESS, Bower...talk to him.</p>
+
+
+<h1>PSUCA</h1>
+<p>Most non-website related SSL certificates (i.e. ones issued for the application services described in the previous section) are signed by the PSUCA. If your application needs to trust a certificate signed by PSUCA, you should add this to your CA file or directory:</p>
+
+<pre>
+-----BEGIN CERTIFICATE-----
+MIIFAzCCA+ugAwIBAgIJAMrppe7EmK9sMA0GCSqGSIb3DQEBBQUAMIGxMQswCQYD
+VQQGEwJVUzEPMA0GA1UECBMGT3JlZ29uMREwDwYDVQQHEwhQb3J0bGFuZDEiMCAG
+A1UEChMZUG9ydGxhbmQgU3RhdGUgVW5pdmVyc2l0eTErMCkGA1UECxMiT2ZmaWNl
+IG9mIEluZm9ybWF0aW9uIFRlY2hub2xvZ2llczEMMAoGA1UEAxMDT0lUMR8wHQYJ
+KoZIhvcNAQkBFhB1bml4QG9pdC5wZHguZWR1MB4XDTA3MDgwNjIxMTA1MFoXDTM4
+MDExODIxMTA1MFowgbExCzAJBgNVBAYTAlVTMQ8wDQYDVQQIEwZPcmVnb24xETAP
+BgNVBAcTCFBvcnRsYW5kMSIwIAYDVQQKExlQb3J0bGFuZCBTdGF0ZSBVbml2ZXJz
+aXR5MSswKQYDVQQLEyJPZmZpY2Ugb2YgSW5mb3JtYXRpb24gVGVjaG5vbG9naWVz
+MQwwCgYDVQQDEwNPSVQxHzAdBgkqhkiG9w0BCQEWEHVuaXhAb2l0LnBkeC5lZHUw
+ggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQDW2L3bMMsVpTI0n2V1je3a
+1D1BaJYsdWmb96uPEwpwNp3bVucluUrl5aq7NWYsrPQjlJPt1B/8oLxXNVKfBpZI
+vb7c9w2bWwzmkRgfuzY5fJ/pMUocpF8zzw3+Z8VB7MGMs8TKQR/3W8jpjNTyb0Yh
+slZYTkdfToRdEZSFaRXrS2G+1EtKDlbKVrihtBu2owFHpzMcM9PM5RyD5ybZv9nj
+PsZ67jYP1IQ5+tt++IInzJx3diewEpiwDReNLADaM4Ubp/SIUdNmbwiciA+kT57i
+Dat9Q2hvblKNl/0m5Dihe4/I08/KoER2p7gDYy4Q2UZq0VpU0O2c6pvtIIS02ZvH
+AgMBAAGjggEaMIIBFjAdBgNVHQ4EFgQUS1LLS4Q+1HEz0G+KckFnFVOkMOgwgeYG
+A1UdIwSB3jCB24AUS1LLS4Q+1HEz0G+KckFnFVOkMOihgbekgbQwgbExCzAJBgNV
+BAYTAlVTMQ8wDQYDVQQIEwZPcmVnb24xETAPBgNVBAcTCFBvcnRsYW5kMSIwIAYD
+VQQKExlQb3J0bGFuZCBTdGF0ZSBVbml2ZXJzaXR5MSswKQYDVQQLEyJPZmZpY2Ug
+b2YgSW5mb3JtYXRpb24gVGVjaG5vbG9naWVzMQwwCgYDVQQDEwNPSVQxHzAdBgkq
+hkiG9w0BCQEWEHVuaXhAb2l0LnBkeC5lZHWCCQDK6aXuxJivbDAMBgNVHRMEBTAD
+AQH/MA0GCSqGSIb3DQEBBQUAA4IBAQDMkvOn/TLpo6X8NFGPkdDMhF1vYJQLyFNA
+hNq9V/+PO6zAKnX/w3iP5PfYGyF/9uTIWZs+bJGHkNay4jxFU34CEOZF92KuNrN6
+wFa9Rau6DFmIFF+NRq6hHYSWkLI13ywmvY08XslST4u35GDBzVPzlBgxHI3gxFdD
+F8qDidOhQlNksYM6vDF4ofpkTz6C65J51tfhSAygjDUWb3ZAg4krnwPhql/02tFn
+4/1lbYOwxcPGy13SmpVD1ovB6TOHNMjqLZyaGgCLsXS9K2i/gMSCDxRlt376N1xZ
+07m5lSMAqkwBUvWTCvFELbSnXryjbLZLmOly3AGHZrVV86CAdBw0
+-----END CERTIFICATE-----
+</pre>
+
+<p>If you're not familiar with PKI, don't worry, typically this is all you have to do in PHP if you're using curl:</p>
+<pre>
+curl_setopt($ch, CURLOPT_CAPATH, "/path/to/directory");
+// where /path/to/directory contains a file called PSUCA.crt with the certificate above copied and pasted into it.
+</pre>
+
+<p>The <a href="https://github.com/PSU-OIT-ARC/elections/blob/e5d982ab655d7b85109c1b7abaa3ae1ad71adca8/htdocs/index.php#L191">student elections project</a> has an example of this.</p>
+
+<p>With Python, it's a little different. You point at the CA file directly using the <a href="https://docs.python.org/3/library/ssl.html#ssl.wrap_socket"><samp>ca_certs</samp> argument of wrap_socket.</a> If you're not using wrap_socket directly, the library you're using should expose something similar. Check out the ldap3 example in this handbook.</p>
+
+
+<h1>Traq</h1>
+<del>
+<p><a href="http://traq.research.pdx.edu">Traq</a> is a home grown ticket and time tracking application we built in Django. We love to hate it. It gets the job done for the most part, but lacks a lot of the fancy features you'd get in a paid ticketing system, or a big open source project.</p>
+
+<p>When you start on a new project, make sure a new project is opened up in Traq. You should create "components" that align loosely with the deliverables in the proposal. And when you create tickets, you should select the component it matches up with. As you work on the ticket, keep track of the time you spend. This makes it easy to generate an invoice.</p>
+
+<p>Keep traq up to date, or you'll get a nastygram from your boss.</p>
+
+<div class="alert alert-info">
+    <strong>A little history:</strong> ARC's first project management system was <a href="http://trac.edgewall.org/">Trac</a>. Then we downgraded to a custom(ish) Drupal application that we called "Track". Track was slow (thanks to Drupal and NFS) and didn't do what we needed. No one was brave enough to hack on it because...Drupal. Matt made the mistake of just building a new system (claiming "it could be done in a week"). When it was ready to unveil (a few weeks later), everyone thought it would be <em>hilarious</em> to name it "Traq". So we did. Now years later, everyone has hacked on Traq, and it's still a piece of crap. But it's <em>our</em> piece of crap.
+</div>
+</del>
+
+<h1>Jira</h1>
+<p>Use Jira to track your projects. At the time of this writing, the author doesn't use it.</p>
+
+
+<h1>GitHub Practices</h1>
+
+<p>ARC uses GitHub extensively. Following our conventions will make it easier for the project to be managed in the long run.</p>
+
+<h2>Setting up the repo</h2>
+<p>The first step is to <a href="https://github.com/organizations/PSU-OIT-ARC/repositories/new">create a repo, owned by the PSU-OIT-ARC group</a>. If you're a student, get a staff member to create the repo for you. Use lowercase for the name, and use dashes to separate words.</p>
+
+<div class="alert alert-warning">
+    <strong>Be careful when choosing between public and private.</strong> Generally, any libraries or utilities internally built by ARC for ARC can be public. Projects that aren't really research related can typically be public (<a href="https://github.com/PSU-OIT-ARC/ITS">ITS Lost and Found</a>, <a href="https://github.com/PSU-OIT-ARC/mentor">MAPS Mentors Form</a>, <a href="https://github.com/PSU-OIT-ARC/team_dynamics">Team Dynamix Report</a>). If you were tasked with maintaining some application, and you're dumping the source to GitHub, make it private, since you don't know what's in it. Research related projects should usually be private. <strong>When it doubt, make it private.</strong>
+</div>
+
+<h2>TODO include stuff from brandon's document</h2>
+
+<h1>Project Meta Files</h1>
+<p>ARC has adpoted a few conventions for making projects easier to jump into. Any new project, or an old project that is being actively worked on should have these files in the git repo.</p>
+
+<h2 class="same-case">README.md</h2>
+<p>This should contain sections that briefly describe the project, the installation process, any extra services that need to be configured, non-standard vhost settings, and how to run tests.<a href="https://github.com/PSU-OIT-ARC/vcp3/blob/master/README.md">VCP has a decent example</a>.</p>
+
+<h2 class="same-case">.travis.yml</h2>
+<p>This file tells Shippable (and Travis) how to build your project and run tests. When you push your commits to github, the CI service will build the project and warn you if any of the tests fail. Here are some example files:</p>
+<ul>
+    <li><a href="https://github.com/PSU-OIT-ARC/django-arcutils/blob/master/.travis.yml">django-arcutils</a></li>
+    <li><a href="https://github.com/PSU-OIT-ARC/traq">Traq</a></li>
+</ul>
+
+<h2>Makefile</h2>
+<p>ARC projects should have a Makefile in them, with a few standard targets. Make is not great for doing complex things. We chose it because it runs everywhere and it is simple. The Makefile is the <em>interface</em> for various commands but the <em>implementation</em> can be a Python script:</p>
+<pre>
+init:
+    ./bin/init_everything.py
+</pre>
+
+<p>Here are some examples: <a href="https://github.com/PSU-OIT-ARC/traq/blob/master/Makefile">Traq</a>, <a href="https://github.com/PSU-OIT-ARC/aol/blob/master/Makefile">AOL</a>, <a href="https://github.com/PSU-OIT-ARC/ohp/blob/master/Makefile">OHP</a>.</p>
+
+<h3 class="same-case">make init</h3>
+<p><samp>make init</samp> is the most important make target. It should do everything required to go from a `git clone` to actually running the app. It is assumed the user is running this command on the <a href="https://github.com/PSU-OIT-ARC/vagrant-manifest">offical ARC vagrant box</a>. In the Django world, this target should create a virtualenv, pip install any required packages, create a database, run migrations, collectstatic files, download any necessary binaries (like ffmpeg), and load up initial data.</p>
+<p>It is good to generate some dummy data so the user doesn't have to. And it's nice if you generate an administrative user for them too.</p>
+<p>This operation should be idempotent. This makes the operation dangerous, because it will have to DROP the database if it exists, for example.</p>
+
+<h3 class="same-case">make run (the default target)</h3>
+<p><samp>make run</samp> should actually run the app so you can use it in the browser. This is usually just a shortcut for <samp>./manage.py runserver 0.0.0.0:8000</samp>. It is assumed the app is already setup correctly when this target is run (so you don't need to setup the database).</p>
+
+<h3 class="same-case">make clean</h3>
+<p>This should be used to delete generated files (.pyc, __pycache__, etc).</p>
+
+<h2 class="same-case">CHANGELOG.md</h2>
+<p>All projects should have a change log file (CHANGELOG.md) that follows this format:</p>
+<pre>
+# Change Log
+All notable changes to this project will be documented in this file.
+This project adheres to [Semantic Versioning](http://semver.org/).
+
+## [Unreleased][unreleased]
+### Changed
+- Improve argument against commit logs.
+
+## [0.0.8] - 2015-02-17
+### Added
+- Link, and make it obvious that date format is ISO 8601.
+
+### Changed
+- Update year to match in every README example.
+- Reluctantly stop making fun of Brits only, since most of the world
+  writes dates in a strange way.
+
+### Fixed
+- Fix typos in recent README changes.
+- Update outdated unreleased diff link.
+
+### Removed
+- Remove empty sections from CHANGELOG, they occupy too much space and
+create too much noise in the file. People will have to assume that the
+missing sections were intentionally left out because they contained no
+notable changes.
+
+## [0.0.7] - 2015-02-16
+### Changed
+- Clarified the section on "Is there a standard change log format?".
+</pre>
+<p>See <a href="http://keepachangelog.com/">keepachangelog.com</a> for more details.</p>
+
+<h1>Versioning</h1>
+<p>Git hashes don't count as version numbers around here. Code you write in ARC should follow a sane(ish) versioning scheme.</p> 
+
+<h2>Shared Libraries</h2>
+<p>Shared libraries maintained by ARC (like django-arcutils, stashward, etc) must follow <a href="http://semver.org/">semantic versioning</a>. The summary is provided here for convenience:</p>
+<pre>
+Given a version number MAJOR.MINOR.PATCH, increment the:
+
+1. MAJOR version when you make incompatible API changes,
+2. MINOR version when you add functionality in a backwards-compatible manner, and
+3. PATCH version when you make backwards-compatible bug fixes.
+
+Additional labels for pre-release and build metadata are available as extensions to the MAJOR.MINOR.PATCH format.
+</pre>
+
+<h2>Projects</h2>
+<p>Semantic versioning doesn't fit well with our projects, because our projects aren't really treated as APIs. Our custom versioning scheme is like this:</p>
+<pre>
+Given a version number MAJOR.MINOR.PATCH, increment the:
+
+1. MAJOR version when you make major changes to the project,
+2. MINOR version when you add/remove features, and
+3. PATCH version when you make bug fixes, or refactor thing
+</pre>
+<p>Yes, it's a little wishy-washy, but it's good enough for our use cases. With (very) rare exception, whenever you deploy your project to production you should bump up the version number.</p>
+
+
+<h1>Provisioning a new website</h1>
+<p>Production and staging websites should run out of a directory in /vol/www/, <strong class="text-danger">that has permissions bits 770</strong>, and group ownership set to a resgrp. Each website should run on its own VM, with the apache process running as a svusr that has membership in the appropriate resgrp.</p>
+<p>Completely static websites (i.e. no PHP, CGI, WSGI, .htaccess, etc) don't follow all of the rules above. The details are described later.</p>
+
+<p>To setup the directory in /vol/www/, send an email to cis-io@pdx.edu with something like this:</p>
+<pre>
+Please create the share /vol/www/foobar and a new resgrp for it. Please make me a member of that group.
+
+Thank you,
+</pre>
+<p>When the ticket is resolved, you can setup the standard directory structure with the correct permissions.</p> 
+
+<p>When you're ready to deploy the production instance of the application, you need to provision the production services like Postgres/MySQL, Elasticsearch, etc. Then you need to request the creation of a VM (cis-unix@pdx.edu):</p>
+
+<pre>
+Please provision an ARC web VM with [SSL and] [PHP5.5|Python2|Python3] for the project "foobar". Create a vhost with the following directives:
+
+ServerName foobar.research.pdx.edu
+DocumentRoot /vol/www/foobar/prod/static
+WSGIScriptAlias /vol/www/foobar/prod/foobar/wsgi.py
+Alias /static /vol/www/foobar/prod/static
+Alias /media /vol/www/foobar/prod/media
+
+Create a svusr that is grouped to resgrp123, and run apache as that user.
+
+Thank you,
+</pre>
+
+<p>In all likelihood, there will be a problem with the VM. Apache won't be running as the right user, or the svusr won't be a member of the resgrp, or there will be a directive missing. Just keep following up with the same ticket to get things resolved with the unix team.</p>
+
+<h2>DNS</h2>
+<div class="alert alert-info">
+    ARC has two DNS "namespaces": <strong>*.research.pdx.edu</strong> and <strong>*.rc.pdx.edu</strong>. "rc" is used for internal names and aliases (like logs.rc.pdx.edu, or mysql.rc.pdx.edu), and for machine names (themis.rc.pdx.edu). The "research" namespace is for public facing websites and services.
+</div>
+
+<p>When the VM is setup, create a DNS entry for the <em>website</em> (cis-unix creates the DNS entry for the machine [e.g. "projectname.rc.pdx.edu"]). Certain ARC staffers can do that for you using <a href="https://dnsmaster.oit.pdx.edu:10000/">Webmin</a>. If the domain is "something.research.pdx.edu", create a CNAME record that points to the VM (usually something.<strong>rc</strong>.pdx.edu). For the love of all that is good in the world, don't create a DNS entry (nor a ServerAlias) for <strong>www</strong>.something.research.pdx.edu.</p>
+
+<p>If the website has a custom domain (like example.com), make an A record for example.com pointed at the IP address of the VM, and a CNAME from www.example to example.com.</p>
+
+<h2>HTTPS</h2>
+<p>Websites should always be served up over SSL. Legacy sites don't use SSL, but if the website goes under active development again, it is a good idea to enable SSL. There is a wildcard SSL certificate issued for *.research.pdx.edu. So any site that operates as a subdomain of that can use SSL. Sites with their own domains need to get an SSL certificate issued manually. You can request one by filling out the <a href="http://computing.pdx.edu/forms/sslcertificaterequest">SSL Certificate Request form</a>. If you can't access it, send a request to cis-unix@pdx.edu to get one created. There is typically no cost associated with it, unless it is a special certificate (like a wildcard).</p>
+
+<p>SNI is not currently supported, so if Apache needs to serve up multiple SSL certificates, it will need multiple IPs.</p>
+
+
+<h2>Static websites</h2>
+<p>Completely static websites are setup a little differently. You still need to put in a request to have the /vol/www share created along with a resgrp. But the permissions need to be more liberal. Static websites are run on a shared VM inert.rc.pdx.edu, which runs apache, as the user "apache" (with no scripting modules enabled). So the directory in /vol/www/ needs to allow apache to read its files. Therefore, the permissions must be 775, as opposed to 770. You still need to put in a request to cis-unix to get the vhost created on inert.rc.pdx.edu, but there is no need for a service user:</p>
+
+<pre>
+Please setup a vhost on inert.rc.pdx.edu with the following directives:
+
+ServerName foobar.research.pdx.edu
+DocumentRoot /vol/www/foobar/some/path
+
+Thank you,
+</pre>
+
+<h1>Staging an application</h1>
+<p>It's good to stage your application on the ARC infrastructure before moving it into prod to detect bugs that wouldn't appear during development on your local machine. merope.rc.pdx.edu is a box that has all the ARC services running on it locally (like Elasticsearch, Redis, RabbitMQ, Postgres, MySQL, Apache, mod_wsgi and PHP). You can use this box to setup a staging website, database or Elasticsearch index without effecting the production services.</p>
+
+<p>To create staging databases, RabbitMQ users, ES indices etc, just logon to merope, and do what you would normally do on a production box to setup the service. Setting up a vhost is different though.</p>
+
+<h2>Creating a staging apache vhost using httpd-multi</h2>
+<p>Your application lives somewhere on /vol/www/$dir. That directory should have permissions that are 770 and it should be grouped to a resgrp (e.g. resgrp123). This prevents the hundreds of people who have access to research systems from reading your files that have database passwords in them, for example. Only members of the right resgrp can access that directory. In production, the VM that your application resides on runs apache as a specific service user (i.e. svusr123) that belongs to the same group that /vol/www/$dir is grouped to. This allows Apache to access the files it needs to run your application.</p>
+
+<p>Apache can only run as a single user. This poses a problem on a staging VM like merope. Your staging code is located in /vol/www/$dir somewhere and only members of a certain group can access it. Dozens of sites need to be staged on merope. Do we make the "apache" user a member of every single resgrp? No. We run multiple instance of apache using <a href="https://github.com/PSU-OIT-ARC/httpd-multi">httpd-multi</a> (which is in "installed" in /root/httpd-multi/ on merope.rc.pdx.edu)</p>
+
+<p>It works like this: Merope has the default apache instance running on port 80 as the user "apache". Nothing fancy going on here. To create a staging website, you create a vhost in "/etc/httpd/vhost.d/" (just like normal) <strong>BUT</strong>, the filename MUST end in ".vhost" (not the usual .conf), AND it must specify a "Listen" directive (and it probably should define a User and Group). Here's what a good vhost would look like:</p>
+<pre>
+# /etc/httpd/vhost.d/vcp.vhost
+User svusr114 # this is a user that belongs to group "resgrp114"
+Group resgrp114 # this is the group that has rwx on /vol/www/vcp (which is 770)
+Listen 9007 # this an abitrary port number you need to pick. If you one that is already in use, you'll get a nice error message about it
+&lt;VirtualHost *&gt;
+    ServerName vcp.stage.rc.pdx.edu
+    ServerAlias *.vcp.stage.rc.pdx.edu
+
+    WSGIDaemonProcess vcp processes=2 threads=25 umask=0002 display-name=%{GROUP} home=/tmp
+    WSGIProcessGroup  vcp
+    WSGIScriptAlias / /vol/www/vcp/dev/vcp/wsgi.py
+
+    Alias /static /vol/www/vcp/dev/static
+    Alias /media/logos /vol/www/vcp/dev/media/logos
+&lt;/VirtualHost&gt;
+</pre>
+
+<p>Notice how we specify a User, Group and Listen directive.</p>
+
+<p>Now we run <code>httpd-multi -k graceful</code>. That will find all the <samp>/etc/httpd/vhost.d/*.vhost</samp> files, extract the port and Server(Name|Alias) directives, and generate a new vhost file (/etc/httpd/vhost.d/0proxy.conf) that proxies to whatever port we specified in the <samp>.vhost</samp> file. httpd-multi then spawns a completely new apache process, including that .vhost file as a configuration file (which will listen on port 9007). It reloads the main apache process on port 80, and now you can go to vcp.stage.rc.pdx.edu to see the website.
+</p>
+
+<p>If you're confused, just ask an ARC staffer for help.</p>
+
+<h1>Django Practices</h1>
+<p>As a general rule, follow the <a href="https://docs.djangoproject.com/en/dev/internals/contributing/writing-code/coding-style/">Django style guide</a>. But we have a few other conventions and patterns.</p>
+
+<h2>Directory Layout</h2>
+<p>Our projects tend to end up looking something like:</p>
+<pre>
+.git/
+.gitignore
+.env # your virtualenv
+requirements.txt # list of install requirements for pip
+manage.py
+static/ # this is where collected static files are sent to -- don't edit stuff in here
+media/ # user uploaded content goes here
+bin/
+    ffmpeg 
+    some_other_binary
+project_name/ # replace project_name with whatever the name of your project is
+    __init__.py
+    wsgi.py
+    settings.py # or a settings package
+    urls.py
+    utils.py # or a utils package
+    static/
+        css/
+        js/
+        img/
+    users/ # some custom app
+        __init__.py
+        models.py
+        views.py
+        forms.py
+        tests.py
+    lakes/ # another custom app
+        __init__.py
+        models.py
+        views.py
+        forms.py
+        tests.py
+    templates/ # general template directory
+        base.html
+        lakes/
+            detail.html
+            edit.html
+            list.html
+            delete.html
+        users/
+            detail.html
+            edit.html
+            list.html
+            delete.html
+</pre>
+
+<h2>Apps</h2>
+<p>App names should be short, lowercase and only contain the characters a-z. Lean toward plural names. "users" not "user", "reports" not "report".</p>
+
+<h2>Model Classes</h2>
+<p>Model classes should be singular (e.g. "User" not "Users"), they should always define an explicit primary key and include a Meta class.</p>
+
+<h3>Field Names</h3>
+<p>Model field names should be descriptive, but not redundant (don't include the name of the model in the field name) -- except in the case of the primary key. If the field is a boolean, it should be prefixed with "is_" when grammatically reasonable. Foreign key fields should be separated by an extra newline from non-FK fields. Datetime fields should end with _on. CharFields (and EmailFields!) should have a max_length of 255, unless there's a good reason not to make it that big (for example, if you were storing an MD5 sum, you should set max_length=32). ManyToManyField without a "through" argument should set the "<a href="https://docs.djangoproject.com/en/1.7/ref/models/fields/#django.db.models.ManyToManyField.db_table">db_table</a>" so Django doesn't generate an ugly table name.</p>
+
+<div class="code">class Project(models.Model):
+    # notice the primary key is "project_id", not just "id"
+    project_id = models.AutoField(primary_key=True)
+    # but for normal fields, don't include the model name (don't call this field "project_name")
+    name = models.CharField(max_length=255)
+    is_active = models.BooleanField(default=False)
+    created_on = models.DateTimeField(auto_now_add=True)
+    edited_on = models.DateTimeField(auto_now=True)
+
+    # note the extra newline above to separate the FK fields
+    user = models.ForeignKey("users.User")
+    # note the db_table is defined (otherwise Django makes up a stupid table name)
+    tags = models.ManyToMany("tags.Tag", db_table="project_tag")
+</div>
+
+
+<h3>Meta Classes</h3>
+<p>Always define one. Django will automatically generate verbose table names for your models of the form <samp>appname_model_name</samp>. There are benefits to this, but they won't be realized in most of the apps you write. You should always explicity name your tables using the model Meta class <samp>db_table</samp> attribute. Table names should be lower case, singular, and use underscores to separate words:</p>
+<div class="code">class Project(models.Model):
+    project_id = models.AutoField(primary_key=True)
+    name = models.CharField(max_length=255)
+
+    class Meta:
+        # this is important otherwise django will generate a stupid name for you
+        db_table = "project" 
+</div>
+
+<h2>Views</h2>
+<p><em>Favor</em> function based views over class based views just because <a href="http://lukeplant.me.uk/blog/posts/djangos-cbvs-were-a-mistake/">they're simpler</a>. View functions shouldn't contain a lot of business logic and they should be fairly short (~100 lines). It's OK to do some searching, filtering, pagination and sorting, but if it gets complex, consider creating a form or helper function that performs that logic for you. View names should generally be short and simple (create, edit, delete, list_, etc). Views functions that don't have a direct URL route (i.e. helper views) should be prefixed with _ (like _edit in the example below).</p>
+
+<h2>Forms</h2>
+<p>Forms should usually live in a "forms.py" file inside of an app. Form class names should be prefixed with the primary object they use, and should be suffixed with "Form". Good examples of names for forms related to a "Project" model are ProjectForm (or ProjectCreateForm and ProjectEditForm if the create and edit forms are drastically different), ProjectPublishForm, ProjectFilterForm.</p>
+
+<h2>Templates</h2>
+<p>Unless you're building a reusable app, templates should be in the "templates" directory of the project, in a subdirectory that matches the app name (e.g. project_name/templates/app_name/list.html). Some people like putting the templates in "project_name/app_name/templates/app_name/list.html", but that's too deeply nested for our tastes. In the rare case where you are making a resuable app, then you should put the templates in the app directory, not the project templates directory.</p>
+
+<p>You should have a base template in your project ("base.html"), that most of your other templates extend "{% extends 'base.html' %}".</p>
+
+<h2>Settings</h2>
+<p>Django uses a settings.py file to configure the project. Unfortunately, this file cannot be included in your git repo <em>as-is</em>. It (probably) contains your database connection credentials, your secret key, API keys, and a bunch of other stuff that shouldn't be in a git repo (because it's secret, or because it changes depending on where you deploy the project). Because of this, people have come up with <a href="https://code.djangoproject.com/wiki/SplitSettings">dozens of ways to handle settings in a Django project</a>.</p>
+<p>ARC has settled on a few ways:</p>
+
+<h3>Matt's Method</h3>
+<p>Use one settings file (<a href="http://bruno.im/2013/may/18/django-stop-writing-settings-files/">because it's simple</a>), and use varlet when a setting is variable and/or should be excluded from git:</p>
+<div class="code python"># settings.py
+import os
+from varlet import variable
+
+DEBUG = variable("DEBUG", default=True)
+
+ADMINS = variable("ADMINS", default=[("Matt", "foo@example.com")])
+
+SECRET_KEY = variable("SECRET_KEY", default=os.urandom(64).decode("latin1"))
+
+HOSTNAME = variable("HOSTNAME", default="10.0.0.10.xip.io:8000")
+
+# In production, use something like 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_BACKEND = variable("EMAIL_BACKEND", default='django.core.mail.backends.console.EmailBackend')
+
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': variable("DB_NAME", default='vcp'),
+        'USER': variable("DB_USER", default='root'),
+        'PASSWORD': variable("DB_PASSWORD", default=''),
+        'HOST': variable("DB_HOST", ""),
+        'PORT': '',
+    }
+}
+
+# All the other settings INSTALLED_APPS, MIDDLEWARE_CLASSES, etc
+</div>
+
+<p>When the project is first run, varlet will prompt the user to enter the missing settings, and then it will write them to a 'variables.py' file (which should be excluded from git).</p>
+<p>The primary benefit to this approach is its simplicity and it forces settings to be set by the programmer before the application will run.</p>
+
+<h3>Wyatt's Way</h3>
+<p>TODO</p>
+
+
+<h1>Unit Testing</h1>
+<p>Django projects should have unit tests. We typically use <a href="https://docs.python.org/3/library/unittest.mock.html">mock</a> and <a href="https://github.com/vandersonmota/model_mommy">model_mommy</a> for testing. Mock comes with python3 so you don't have to install it. model_mommy needs to be pip installed.</p>
+
+<h2>Model Mommy</h2>
+<p>The rule of thumb is always use model mommy to make model objects. It will save you a lot of time when you go adding or removing fields from a model class.</p>
+
+<div class="code"># tests.py
+from django.test import TestCase
+# the (major) difference between make and prepare is that `make` saves the object to the database, and `prepare` doesn't
+from model_mommy.mommy import make, prepare
+
+from .models import User
+from .forms import UserForm
+
+
+class UserFormTest(TestCase):
+    def test_something(self):
+        # Don't specify values for all these unnecessary fields for the test. Gross...
+        user = User(first_name="foo", last_name="bar", is_staff=True, is_active=True, some_other_thing="asdf")
+        user.save()
+        
+        # do this instead! Only specify the fields you care about in the test
+        user = make(User, is_staff=True)
+</div>
+
+
+<h2>Mock</h2>
+<p>Use mock when you have a big old function, method, class, or object embedded in the middle of the thing you're trying to test &ndash; and your test's job is <em>not</em> to test the internal workings of that big old function, method, class or object. For example:</p>
+
+<div class="code"># forms.py
+from django import forms
+from .models import User
+
+
+class UserForm(forms.ModelForm):
+    # ...lots of stuff excluded...
+
+    def save(self, *args, **kwargs):
+        password = self.cleaned_data.pop("password", None)
+        if password is not None:
+            self.instance.set_password(password)
+
+    return super().save(*args, **kwargs)
+</div>
+
+<p>Here we have a ModelForm, and we only want to test our implementation of the save method. I don't want to worry about any of the internal workings of the superclass (forms.ModelForm) with respect to <samp>save()</samp>. I just want to make sure the password gets set, and the superclass's save method gets called.</p>
+
+<div class="code"># tests.py
+from unittest.mock import Mock, patch
+from model_mommy.mommy import make, prepare
+
+
+class UserFormTest(TestCase):
+    def test_save_sets_the_password_for_new_users(self):
+        """
+        If the user is being created, the password should be updated
+        """
+        # to avoid having to generate valid data for this form, we mock up the
+        # superclass's save method and the form's cleaned_data
+        with patch("vcp.users.forms.forms.ModelForm.save") as mock:
+            user = prepare(User)
+            form = UserForm(instance=user)
+            form.cleaned_data = {"password": "foobar"}
+
+            form.save()
+
+            # ensure the password was updated
+            self.assertTrue(user.check_password("foobar"))
+            # ensure the superclass was called (which actually saves the model)
+            self.assertTrue(mock.called)
+</div>
+
+<p>The trick with patching in mock is knowing the "path" to the thing you want to patch. To quote the docs: "<a href="https://docs.python.org/3/library/unittest.mock.html#where-to-patch">The basic principle is that you patch where an object is looked up, which is not necessarily the same place as where it is defined</a>." In the example above, I do <em>not</em> patch "django.forms.ModelForm.save" (where that method is defined). Instead, I form the path to the save method, from the module that uses it ("vcp.users.forms"), and the path to the save method <em>from there</em> is "forms.ModelForm.save". So the whole path is "vcp.users.forms.forms.ModelForm.save".</p>
+
+<p>You'll figure it out, eventually.</p>
+
+<h1>Deployment</h1>
+<p>When changes are ready to be deployed some things need to happen:</p>
+<ol>
+    <li>An entry in the CHANGELOG needs to note the new version number and changes</li>
+    <li>All changes need to be commited in git</li>
+    <li>The commit you want to deploy must be tagged with a version number <samp>git tag -a 3.1.4</samp></li>
+</ol>
+
+<p>TODO continue the description</p>  
+
+<h1>Project Checklist</h1>
+<p><strong>First Few Days</strong></p>
+<ol class="checklist">
+    <li>Proposal is written in adequate detail</li>
+    <li>Secondary programmer is identified</li>
+    <li>Project in Traq is created with components loosely matching the deliverables</li>
+    <li>GitHub repo for the project is in github.com/PSU-OIT-ARC</li>
+    <li>README.md is present describing the project in reasonable detail</li>
+    <li>ARC conforming Makefile is present</li>
+    <li>CHANGELOG.md is present</li>
+</ol>
+
+<p><strong>First Few Weeks</strong></p>
+<ol class="checklist">
+    <li>Google Analyics property setup for the site</li>
+    <li>/vol/www/ share created with correct permissions and new resgrp</li>
+    <li>svusr created belonging to the proper resgrp</li>
+    <li>Staging vhost setup</li>
+    <li>Staging resources created (DB, Elasticsearch index, etc)</li>
+</ol>
+
+<p><strong>Last Few Weeks</strong></p>
+<ol class="checklist">
+    <li>VM Setup</li>
+    <li>Production vhost created</li>
+    <li>Production resources created (DB, Elasticsearch index, etc)</li>
+    <li>Production DNS entry created</li>
+</ol>
+
+<h1>General Web Application Practices and Programming Advice</h1>
+<blockquote>
+    <p>Getting the details right is the difference between something that delights, and something customers tolerate.</p>
+    <footer><cite>Jeff Atwood (one of the guys who made stackoverflow.com)</cite></footer>
+</blockquote>
+
+<h2>Redirect after a successful POST</h2>
+<p>To prevent duplicate form submissions, <a href="http://stackoverflow.com/a/14604873/2733517">always issue an HTTP redirect when a form is successfully submitted</a>.</p>
+
+<h2>Flash a message to the user when an action is performed</h2>
+<p>Whenever you issue a POST request (and then redirect to another page), you should indicate that the POST was successful. You can use <a href="https://docs.djangoproject.com/en/1.7/ref/contrib/messages/">Django messages</a> for that. The POST-redirect and message pattern looks like this:</p>
+<div class="code"># views.py
+from django.shortcuts import render, redirect
+from django.contrib import messages
+
+def create(request):
+    if request.method == "POST":
+        form = SomeForm(request.POST)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Blah blah blah successful!") # this assumes your template on the next page renders these messages
+            return redirect("some-other-page") # notice the redirect here!
+    else:
+        form = SomeForm()
+
+    return render(request, "path/to/template.html")
+</div>
+
+<h2>Confirm before delete (and only delete via a POST)</h2>
+<p>It's generally annoying to implement, but whenever a user intends to delete an object, the user should be taken to a confirmation page with a form to confirm. Also use JavaScript to display a back button</p>
+<pre>
+&lt;form method=&quot;post&quot;&gt;
+    {% csrf_token %}
+    &lt;button class=&quot;btn btn-default&quot; onclick=&quot;window.history.go(-1); return false&quot;&gt;Cancel&lt;/button&gt;
+
+    &lt;button type=&quot;submit&quot; name=&quot;finish&quot; class=&quot;pull-right btn btn-danger&quot; onclick=&quot;return confirm('Click OK if you are really sure')&quot;&gt;Permanently Delete&lt;/button&gt;
+&lt;/form&gt;
+</pre>
+
+<h2>POST to the same page</h2>
+<p>You (almost) always should POST to the same page that rendered the form the user is submitting. That way, if the form is invalid, you have access to the POST variables, and can repopulate the form with the information the user entered. It's really easy to do, just don't add an "action" attribute to your &lt;form&gt; tag.</p>
+
+<h2>Provide a mechanism to undo certain operations</h2>
+<p>In some cases, this is not feasible to implement (like with delete operations). But, if you provide, for example, an "archive" operation. Then there should be an "unarchive" operation as well.</p>
+
+<h2>Know when to use POST vs GET</h2>
+<p>POST when you change something (add, edit or delete). GET when you view/filter something. <a href="http://stackoverflow.com/questions/504947/when-should-i-use-get-or-post-method-whats-the-difference-between-them">More info</a></p>
+
+<h2>DB Writes should be wrapped up in a transaction</h2>
+<p>As a good safe default, any POST request should be executed inside of a DB transaction. This can be done easily in the <a href="https://github.com/PSU-OIT-ARC/vcp3/blob/a860620c67be45c15ae3eabc6560ee717c494048/vcp/settings.py#L103">Django world with ATOMIC_REQUESTS</a> (unfortunately, this wraps up GET requests in a transaction too, but oh well).</p>
+
+<h2>Preserve Element Visibility Between Reloads</h2>
+<p>For example, if you're using tabs on a page and the tab content is accessed via JavaScript, consider using a cookie with some JS to preserve the selected tab. That way, if the user navigates away, and then comes back, they will see the tab they were looking at before they left.</p>
+
+<h2>DRY (don't repeat yourself)</h2>
+<p><em>Every piece of <strong>knowledge</strong> must have a single, unambiguous, authoritative representation within a system.</em> But don't confuse boilerplate code with knowledge. Some duplication is fine and refactoring it out only makes code harder to read.</p>
+
+<h2>On Breaking Code Up Into Functions</h2>
+<p>On March 13, 2007, John Carmack (who is smarter than you) <a href="http://number-none.com/blow/john_carmack_on_inlined_code.html">had something unconventional to say about breaking code up into functions</a>.</p> 
+
+<h2>Button Placement</h2>
+<p>Destructive buttons (Delete, Cancel, Reset, etc) should not be next to primary buttons (Submit, Save, etc).</li>
+
+<h2>Page Design</h2>
+<p>A page should, generally, have one main function or purpose. If your page is split in two <em>even</em> columns, it's a bad sign.</p>
+
+<h1>Process For Decommissioning a Website</h1>
+<p>TODO</p>
+
+<h1>Handling Customer Requests</h1>
+<dl>
+    <dt>"I have 2TB of data I need to store somewhere."</dt>
+    <dd>Get clarification about who they are, and what kind of data it is. Generally, for faculty members with research data, we will provide some space to them. It's Will's call though.</dd>
+
+    <dt>"I have a website, and I want to host it at PSU."</dt>
+    <dd>We generally are willing to host websites that are research related for faculty members. Some student capstone projects can be hosted here. Again, it's Will's decision to allow or deny.</dd>
+
+    <dt>"Help, I've fallen and I can't get up!"</dt>
+    <dd>Refer them to <em>Life Alert</em>&#8482;</dd>
+
+    <dt>"My professor wants me to update his website. How can I get in?"</dt>
+    <dd>Send an email to the professor confirming that, indeed, the student should have access to the website. Figure out if the student needs access to the "admin" area of the site (as is usually the case with Drupal), or if they need file system access. If it's the latter, send a ticket to cis-requests@pdx.edu to get a research account created for the user and make sure you indicate which resgrp they should belong to.</dd>
+</dl>
+
+
+<h1>HR Stuff</h1>
+<h2>Requesting Time Off</h2>
+<p>Todo</p>
+<h2>Calling in Sick</h2>
+<p>Todo</p>
+<h2>Working Hours</h2>
+<p>Todo</p>
+<h2>Telecommuting</h2>
+<p>Hah...hahaha. No.</p>
+
+
+<h1>Gotchas</h1>
+<p>A collection of gotchas you will experience in ARC:</p>
+<ol>
+    <li>ARC web VMs can't send emails to non-@pdx.edu email addresses unless you explicitly ask cis-unix to whitelist the server.</li>
+    <li>Local development VMs can't send emails (at least if you're on Windows). The ARC standard vagrant box loops all emails back to root@localhost.</li>
+    <li>You can't install psycopg2 without adding something like "/usr/pgsql-9.3/bin" to your path so the <samp>pg_config</samp> executable is found.</li>
+    <li>A file has group write permission, and you're a member of that group. You can't necessarily write to the file. At any one time, you should only be a member of a maximum of 16 groups. If you are added to a 17th group, when you try to perform operations on the file system that require membership in the 17th group, you'll get a permission denied error. Use the newgrp $group_name command to spawn a new shell with the $group_name pushed to the front of your group list (which should solve the problem).</li>
+    <li>Your changes to system configuration files will usually get overwritten on ARC machines. It's puppet. You need to get cis-unix to add your changes to puppet.</li>
+    <li>Doing anything in /vol/www is slow. The more you whine about it, the slower it gets.</li>
+    <li>The vhosts generated by Puppet have a bunch of extraneous directives in them. That's just how things work around here.</li>
+</ol>
+
+<h1>Resources</h1>
+<h2>Python</h2>
+<ol>
+    <li><a href="http://stackoverflow.com/questions/36901/what-does-double-star-and-star-do-for-python-parameters">Understanding *args, and **kwargs</a></li>
+</ol>
+
+</body>
+</html>
+
