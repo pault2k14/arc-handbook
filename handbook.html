@@ -8,12 +8,12 @@
 <script>
 function password(len, charSet) {
     len = len || 10;
-    charSet = charSet || 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';    
-    var randomString = '';    
-    for (var i = 0; i < len; i++) {    
-        var randomPoz = Math.floor(Math.random() * charSet.length);    
-        randomString += charSet.substring(randomPoz,randomPoz+1);    
-    }    
+    charSet = charSet || 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    var randomString = '';
+    for (var i = 0; i < len; i++) {
+        var randomPoz = Math.floor(Math.random() * charSet.length);
+        randomString += charSet.substring(randomPoz,randomPoz+1);
+    }
     return randomString;
 }
 
@@ -48,7 +48,7 @@ function generateTableOfContents(elements, html, level, index){
         html.push("</ol>");
     } else if(this_level < level){
         // we're on (for example) the H2 level, but this tag is an H1...there is nothing to do, but bottom out on the recursion
-        return index; 
+        return index;
     }
 
     // add the sibling heading
@@ -57,7 +57,7 @@ function generateTableOfContents(elements, html, level, index){
 
 
 $(document).ready(function(){
-    // to make copying and pasting easier, we generate a password for any elements that have the class "insert-password" 
+    // to make copying and pasting easier, we generate a password for any elements that have the class "insert-password"
     $('.insert-password').each(function(){
         $(this).text(password);
     });
@@ -130,27 +130,27 @@ h6 {
 }
 
 h1:before {
-    content: counter(h1) ". "; 
+    content: counter(h1) ". ";
 }
 
 h2:before {
-    content: counter(h1) "." counter(h2) " "; 
+    content: counter(h1) "." counter(h2) " ";
 }
 
 h3:before {
-    content: counter(h1) "." counter(h2) "." counter(h3) " "; 
+    content: counter(h1) "." counter(h2) "." counter(h3) " ";
 }
 
 h4:before {
-    content: counter(h1) "." counter(h2) "." counter(h3) "." counter(h4) " "; 
+    content: counter(h1) "." counter(h2) "." counter(h3) "." counter(h4) " ";
 }
 
 h5:before {
-    content: counter(h1) "." counter(h2) "." counter(h3) "." counter(h4) "." counter(h5) " "; 
+    content: counter(h1) "." counter(h2) "." counter(h3) "." counter(h4) "." counter(h5) " ";
 }
 
 h6:before {
-    content: counter(h1) "." counter(h2) "." counter(h3) "." counter(h4) "." counter(h5) "." counter(h6) " "; 
+    content: counter(h1) "." counter(h2) "." counter(h3) "." counter(h4) "." counter(h5) "." counter(h6) " ";
 }
 
 .page-title {
@@ -204,7 +204,7 @@ dt:first-child {
 <h2>Find a Workstation</h2>
 <p>You get your choice of running Windows, Mac, or Linux. The computer you choose today will (likely) be your computer for the remainder of your time with ARC. Choose wisely. If you're going with Windows, fear not! You'll only get ridiculed every once-in-a-while by those smug Mac people.</p>
 
-<h2>Install the Tools</h2> 
+<h2>Install the Tools</h2>
 <p>At a bare minimum, you need:</p>
 <ol>
     <li><a href="https://www.vagrantup.com/downloads.html">Vagrant</a> - for using VMs easily</li>
@@ -232,7 +232,7 @@ ARC
 
 <p>Send an email to the boss of ARC requesting you get added to both email lists.</p>
 
-<h2>Get badge access</h2> 
+<h2>Get badge access</h2>
 <p>As much as ARC employees like getting up from their desks to let you in, it's probably best if you could just let yourself in. Send an email to the ARC boss so your badge works on the ARC doors. Between 1 day and 6 months later, your PSU badge will work on the door.</p>
 
 <h2>Get RT Access</h2>
@@ -288,7 +288,7 @@ chmod 700 .
 <p>There are two special web servers: merope.rc.pdx.edu and inert.rc.pdx.edu. Merope is used by ARC to stage websites and inert is used to host static only websites.</p>
 
 <h3>Database</h3>
-<p>phoebe.rc.pdx.edu and mnemosyne.rc.pdx.edu provide PostgreSQL and MySQL services.</p> 
+<p>phoebe.rc.pdx.edu and mnemosyne.rc.pdx.edu provide PostgreSQL and MySQL services.</p>
 
 <h3>Misc Services</h3>
 <p>Elasticsearch, RabbitMQ, and Redis are provided on themis.rc.pdx.edu and harmonia.rc.pdx.edu. You should always connect to Themis.</p>
@@ -359,14 +359,14 @@ Thank you,
 <del>
 <p>Django logs can be shipped directly to logstash using <a href="https://github.com/PSU-OIT-ARC/stashward">stashward</a>. The <a href="https://github.com/PSU-OIT-ARC/django-arcutils">arcutils</a> package comes with stashward by default, and you can easily hook up logging by adding <code>LOGGING_CONFIG = 'arcutils.logging.basic'</code> to your settings file.</p>
 </del>
-<p>Again, this seemed like a good idea at the time, but we never really found it that useful. Django logs should just end up in the HTTP error log if you don't change the default logging configuration.</p> 
+<p>Again, this seemed like a good idea at the time, but we never really found it that useful. Django logs should just end up in the HTTP error log if you don't change the default logging configuration.</p>
 
 <h2>Email Issues</h2>
 <p>By default emails sent from ARC web VMs are <strong>not</strong> delivered to non-@pdx.edu email addresses. This is to prevent VMs from sending SPAM when they get hacked. You will also have trouble sending email from your local VirtualBox VMs depending on your subnet and host OS. The ARC vagrant manifest sets up postfix in such a way, that all email is redirected back to root@localhost. This is to prevent embarrassing things from happening when you are developing.</p>
 
 <p>If an ARC web VM needs to send emails to non-@pdx.edu email addresses, then send a ticket to cis-unix@pdx.edu:</p>
 <pre>
-Please whitelist the VM foo.rc.pdx.edu so it can send emails to non-@pdx.edu email addresses. 
+Please whitelist the VM foo.rc.pdx.edu so it can send emails to non-@pdx.edu email addresses.
 
 Thank you,
 </pre>
@@ -389,7 +389,7 @@ disabled - No SELinux policy is loaded.
 setenforce enforcing
 </pre>
 
-<p>SElinux problems are common with PHP scripts that use shell_exec (or any related functions). SElinux is a common trigger of hard to track down problems with Python. Python will throw a MemoryError if it attempts to use ctypes, which many GIS packages use (the solution in this case is <code>setsebool httpd_tmp_exec on</code>).</p> 
+<p>SElinux problems are common with PHP scripts that use shell_exec (or any related functions). SElinux is a common trigger of hard to track down problems with Python. Python will throw a MemoryError if it attempts to use ctypes, which many GIS packages use (the solution in this case is <code>setsebool httpd_tmp_exec on</code>).</p>
 
 <p>If you are messing around with SELinux, make sure you get your changes in puppet by looping in cis-unix! Otherwise a reboot will reset everything you did.</p>
 
@@ -464,7 +464,7 @@ setenforce enforcing
 <p>For tables, use all lowercase names, with underscores separating words. Table names should be singular. Column names should be lowercase with words separated by underscores. Don't repeat the table name in the column, except in the case of the primary key (e.g. project_id, not id). Datetime fields should usually end with "_on" (created_on, modified_on, etc), and booleans should be prefixed with "is_" (is_active, is_published, etc).</p>
 
 
-<h3>PostgreSQL Notes</h3> 
+<h3>PostgreSQL Notes</h3>
 <p>For the project "Foobar" create a database and user like:</p>
 <pre>CREATE GROUP foobar_g; -- create a group first
 CREATE DATABASE foobar WITH OWNER = foobar_g; -- make the owner of the database the group
@@ -476,7 +476,7 @@ CREATE USER foobar_l IN GROUP foobar_g PASSWORD '<span class="insert-password"><
 
 <p>Because some applications don't play nicely with Postgres schemas, favor keeping your data entirely in the public schema. It also makes it convenient not to have to run <samp>SET search_path TO my_schema, public;</samp> all the time.</p>
 
-<h3>MySQL Notes</h3> 
+<h3>MySQL Notes</h3>
 <p>For the project "Foobar" create a database and user like:</p>
 <pre>CREATE DATABASE foobar;
 CREATE USER foobar_l@'131.252.%' IDENTIFIED BY "<span class="insert-password"></span>";
@@ -486,10 +486,10 @@ GRANT ALL ON foobar.* TO foobar_l@'131.252.%';
 
 <p>Always use InnoDB tables unless you have a <em>very</em> good reason not to. The collation you should use is "utf8_unicode_ci". These settings are the server default, so you shouldn't need to mess with them.</p>
 
-<p>In MySQL, favor VARCHAR(255) over VARCHAR(50) (or any number less than 255). It takes up the same amount of space and you avoid most truncation problems (there is always someone with a 51 character long last name). If the data is fixed length (like a CSS hex color value), then use VARCHAR(6). If the column could be wider than 255 chars, use a TEXT field instead. <strong class="text-danger">Be aware that the total row length must be less than 8K</strong> and MySQL stores the first 768 bytes of every field in the row! If you have lots of TEXT or VARCHAR columns, this will be a problem.</p>  
+<p>In MySQL, favor VARCHAR(255) over VARCHAR(50) (or any number less than 255). It takes up the same amount of space and you avoid most truncation problems (there is always someone with a 51 character long last name). If the data is fixed length (like a CSS hex color value), then use VARCHAR(6). If the column could be wider than 255 chars, use a TEXT field instead. <strong class="text-danger">Be aware that the total row length must be less than 8K</strong> and MySQL stores the first 768 bytes of every field in the row! If you have lots of TEXT or VARCHAR columns, this will be a problem.</p>
 
 
-<h3>PostgreSQL &lt;=&gt; MySQL</h3> 
+<h3>PostgreSQL &lt;=&gt; MySQL</h3>
 
 <table class="table table-condensed table-striped">
     <thead>
@@ -511,7 +511,7 @@ GRANT ALL ON foobar.* TO foobar_l@'131.252.%';
             <td><samp>/etc/my.cnf</samp></td>
         </tr>
         <tr>
-            <th>Bin (useful when you need to use pg_config, since it isn't in your $PATH by default)</th> 
+            <th>Bin (useful when you need to use pg_config, since it isn't in your $PATH by default)</th>
             <td><samp>/usr/pgsql-9.4/bin</samp></td>
             <td><samp>/usr/bin</samp></td>
         </tr>
@@ -763,7 +763,7 @@ Thank you,
 
 
 <h2>Shared Libraries</h2>
-<p>ARC maintains a few shared libraries, mostly Python/Django related. You should know about these, because it is very likely you will run into a problem that one of these solves:</p> 
+<p>ARC maintains a few shared libraries, mostly Python/Django related. You should know about these, because it is very likely you will run into a problem that one of these solves:</p>
 <ul>
     <li><a href="https://github.com/PSU-OIT-ARC/django-arcutils">django-arcutils</a> - This is a collection of random utilities that you'll probably need on just about every django project you build.</li>
     <li><a href="https://github.com/PSU-OIT-ARC/tableToCSV">tableToCSV</a> - This allows you to make a CSV export from an HTML table entirely on the client.</li>
@@ -944,7 +944,7 @@ notable changes.
 <p>See <a href="http://keepachangelog.com/">keepachangelog.com</a> for more details.</p>
 
 <h1>Versioning</h1>
-<p>Git hashes don't count as version numbers around here. Code you write in ARC should follow a sane(ish) versioning scheme.</p> 
+<p>Git hashes don't count as version numbers around here. Code you write in ARC should follow a sane(ish) versioning scheme.</p>
 
 <h2>Shared Libraries</h2>
 <p>Shared libraries maintained by ARC (like django-arcutils, stashward, etc) must follow <a href="http://semver.org/">semantic versioning</a>. The summary is provided here for convenience:</p>
@@ -980,7 +980,7 @@ Please create the share /vol/www/foobar and a new resgrp for it. Please make me 
 
 Thank you,
 </pre>
-<p>When the ticket is resolved, you can setup the standard directory structure with the correct permissions.</p> 
+<p>When the ticket is resolved, you can setup the standard directory structure with the correct permissions.</p>
 
 <p>When you're ready to deploy the production instance of the application, you need to provision the production services like Postgres/MySQL, Elasticsearch, etc. Then you need to request the creation of a VM (cis-unix@pdx.edu):</p>
 
@@ -1077,7 +1077,7 @@ manage.py
 static/ # this is where collected static files are sent to -- don't edit stuff in here
 media/ # user uploaded content goes here
 bin/
-    ffmpeg 
+    ffmpeg
     some_other_binary
 project_name/ # replace project_name with whatever the name of your project is
     __init__.py
@@ -1148,7 +1148,7 @@ project_name/ # replace project_name with whatever the name of your project is
 
     class Meta:
         # this is important otherwise django will generate a stupid name for you
-        db_table = "project" 
+        db_table = "project"
 </div>
 
 <h2>Views</h2>
@@ -1224,7 +1224,7 @@ class UserFormTest(TestCase):
         # Don't specify values for all these unnecessary fields for the test. Gross...
         user = User(first_name="foo", last_name="bar", is_staff=True, is_active=True, some_other_thing="asdf")
         user.save()
-        
+
         # do this instead! Only specify the fields you care about in the test
         user = make(User, is_staff=True)
 </div>
@@ -1288,7 +1288,7 @@ class UserFormTest(TestCase):
     <li>The commit you want to deploy must be tagged with a version number <samp>git tag -a 3.1.4</samp></li>
 </ol>
 
-<p>TODO continue the description</p>  
+<p>TODO continue the description</p>
 
 <h1>Project Checklist</h1>
 <p><strong>First Few Days</strong></p>
@@ -1377,7 +1377,7 @@ def create(request):
 <p><em>Every piece of <strong>knowledge</strong> must have a single, unambiguous, authoritative representation within a system.</em> But don't confuse boilerplate code with knowledge. Some duplication is fine and refactoring it out only makes code harder to read.</p>
 
 <h2>On Breaking Code Up Into Functions</h2>
-<p>On March 13, 2007, John Carmack (who is smarter than you) <a href="http://number-none.com/blow/john_carmack_on_inlined_code.html">had something unconventional to say about breaking code up into functions</a>.</p> 
+<p>On March 13, 2007, John Carmack (who is smarter than you) <a href="http://number-none.com/blow/john_carmack_on_inlined_code.html">had something unconventional to say about breaking code up into functions</a>.</p>
 
 <h2>Button Placement</h2>
 <p>Destructive buttons (Delete, Cancel, Reset, etc) should not be next to primary buttons (Submit, Save, etc).</li>
