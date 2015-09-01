@@ -1027,6 +1027,9 @@ DocumentRoot /vol/www/foobar/some/path
 Thank you,
 </pre>
 
+<h2>Applications that won't have a share in /vol/www</h2>
+<p>Sometimes, the applications we work on won't have a share in /vol/www. For example, applications hosted on the old odin server, or internal OIT applications (Quick Ticket, Lost and Found, Tess, etc). In these cases, we put the website directory in <samp>/vol/www/research/dev</samp>. The permission bits will have to be 775 or worse, but because this directory is not the production website, it is OK if the passwords and secret keys are exposed.</p>
+
 <h1>Staging an application</h1>
 <p>It's good to stage your application on the ARC infrastructure before moving it into prod to detect bugs that wouldn't appear during development on your local machine. merope.rc.pdx.edu is a box that has all the ARC services running on it locally (like Elasticsearch, Redis, RabbitMQ, Postgres, MySQL, Apache, mod_wsgi and PHP). You can use this box to setup a staging website, database or Elasticsearch index without effecting the production services.</p>
 
