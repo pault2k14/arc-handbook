@@ -339,7 +339,7 @@ Thank you,
 <p>If you change or remove configuration files that are managed by puppet, <strong>your changes will be overwritten in a matter of minutes by puppet</strong>. So you should send a ticket to cis-unix@pdx.edu <em>first</em> and have them apply the changes. In cases where you need to make quick changes, without fear of puppet overwriting your changes, you can run:</p>
 <pre>puppet-disable "Quick change needed on production vhost - johndoe" # replace johndoe with your username</pre>
 <p>Then send your ticket to cis-unix@pdx.edu, and tell them about the change, and the fact that you disabled puppet.</p>
-
+<p>Documention: <a href="http://docs.puppetlabs.com/">Puppet documentation</a></p>
 
 <h2>Logging</h2>
 <del>
@@ -394,6 +394,8 @@ setenforce enforcing
 <p>If you are messing around with SELinux, make sure you get your changes in puppet by looping in cis-unix! Otherwise a reboot will reset everything you did.</p>
 
 <p>The ARC Vagrant box has SELinux disabled since it is more often than not more annoying than useful in a development context.</p>
+
+<p>Documentation: <a href="http://selinuxproject.org/">SELinux Wiki</a></p>
 
 <h2>Backups</h2>
 <p>TODO</p>
@@ -457,6 +459,8 @@ setenforce enforcing
 
 <p>The database servers are accessible to anyone on 131.252.*. SSL is not <em>required</em> to connect to the servers. However, you're welcome to use it. The SSL certs for mysql.rc.pdx.edu and pgsql.rc.pdx.edu are signed by the PSUCA, not a "real" CA.</p>
 
+<p>Tutorial: <a href="http://www.w3schools.com/sql/">General SQL tutorial</a></p>
+
 <h3>Naming Conventions</h3>
 
 <p>The database name should match the name of your project, lowercased, with underscores for spaces. For example, the project "Foo Bar" would be "foo_bar". When creating a development or staging database, the database name should be suffixed with "_dev". You may optionally suffix your production database name with "_prod".</p>
@@ -476,6 +480,9 @@ CREATE USER foobar_l IN GROUP foobar_g PASSWORD '<span class="insert-password"><
 
 <p>Because some applications don't play nicely with Postgres schemas, favor keeping your data entirely in the public schema. It also makes it convenient not to have to run <samp>SET search_path TO my_schema, public;</samp> all the time.</p>
 
+<p>Documentation: <a href="http://www.postgresql.org/docs/">Postgres documentation</a></p>
+<p>Tutorial: <a href="http://www.postgresql.org/docs/9.4/static/tutorial.html">Postgres 9.4 tutorial</a></p>
+
 <h3>MySQL Notes</h3>
 <p>For the project "Foobar" create a database and user like:</p>
 <pre>CREATE DATABASE foobar;
@@ -487,7 +494,8 @@ GRANT ALL ON foobar.* TO foobar_l@'131.252.%';
 <p>Always use InnoDB tables unless you have a <em>very</em> good reason not to. The collation you should use is "utf8_unicode_ci". These settings are the server default, so you shouldn't need to mess with them.</p>
 
 <p>In MySQL, favor VARCHAR(255) over VARCHAR(50) (or any number less than 255). It takes up the same amount of space and you avoid most truncation problems (there is always someone with a 51 character long last name). If the data is fixed length (like a CSS hex color value), then use VARCHAR(6). If the column could be wider than 255 chars, use a TEXT field instead. <strong class="text-danger">Be aware that the total row length must be less than 8K</strong> and MySQL stores the first 768 bytes of every field in the row! If you have lots of TEXT or VARCHAR columns, this will be a problem.</p>
-
+<p>Documentation:  <a href="http://dev.mysql.com/doc/">MySQL documenation</a></p>
+<p>Tutorial: <a href="http://dev.mysql.com/doc/index-topic.html">MySQL topic guides</a></p>
 
 <h3>PostgreSQL &lt;=&gt; MySQL</h3>
 
@@ -584,6 +592,9 @@ rabbitmqctl set_permissions -p /foobar foobar ".*" ".*" ".*"
 
 <p>RabbitMQ is also running on harmonia.rc.pdx.edu, but no one uses it there. The RabbitMQ servers have iptables rules in place which specify which hosts can talk to RabbitMQ.</p>
 
+<p>Documention: <a href="https://www.rabbitmq.com/documentation.html">RabbitMQ documentation</a></p>
+<p>Tutorial: <a href="https://www.rabbitmq.com/getstarted.html">RabbitMQ tutorials</a></p>
+
 <h2>Elasticsearch</h2>
 <p>Elasticsearch is used to store data that should be, well, searchable. We do not treat ES as a persistent data store, so if you put something in it, you should be able to regenerate that data if need be. It is running on two servers. One is our designated master, which all writes and reads should be sent to. The replica is there in case things go down.</p>
 
@@ -618,8 +629,12 @@ rabbitmqctl set_permissions -p /foobar foobar ".*" ".*" ".*"
 
 <p><strong class="text-danger">Elasticsearch is completely unauthenticated</strong>. There are no "users". Any machine allowed in by the iptables rules can read and write to your Elasticsearch indexes. Indexes are created automatically, so be careful with typos. Your index name should be the name of your project, lowercased. If you need supplemental indexes or aliaes, prefix them with your project name (e.g. "oro-geometries").</p>
 
+<p>Documenation: <a href="https://www.elastic.co/guide/index.html">Elasticsearch documentation</a></p>
+
 <h2>Redis</h2>
 <p>Redis provides in-memory data structures for you to use like hashes, lists, and sets. It's useful for caching data. There's a very good chance you'll never need to use Redis for the applications you build here. But it is available if you need it.</p>
+
+<p>Documentation: <a href="http://redis.io/documentation">Redis documenation</a> </p>
 
 <h2>LDAP</h2>
 <p>PSU uses LDAP to store information about groups and users. LDAP is useful in a lot of projects. At the time of this writing, you can send unauthenticated LDAP queries to ldap-login.oit.pdx.edu.</p>
@@ -664,6 +679,33 @@ with conn:
 </div>
 <p>Usually, with SSL, <a href="http://stackoverflow.com/questions/1087227/validate-ssl-certificates-with-python">depending on your Python version</a>, you could still be MITM'd since Python may not check for a CN match on the host you're connecting to. But the smart folks who wrote the ldap3 package use the <a href="https://pypi.python.org/pypi/backports.ssl_match_hostname">match_hostname backport</a>. So you don't have to worry about it.
 </p>
+
+<p>Sometimes you may need to make requests to the active directory server, 
+perhaps for information on AD groups that a user is a member of. Here is
+an example in python, again using the ldap3 package.</p>
+<div class="code">import ldap3
+
+server = ldap3.Server("ldaps://oitdcpsu02.psu.ds.pdx.edu")
+
+conn = ldap3.Connection(
+    server,
+    auto_bind=True,
+    user='lostandfound_svc',
+    password='f8q6u8fuch725n9wamry5fegrq67kkzv',
+    lazy=True,
+)
+
+with conn:
+    result = conn.search(
+        search_base="ou=people,dc=psu,dc=ds,dc=pdx,dc=edu",
+        search_filter="(cn=USERNAME_TO_SEARCH_FOR)",
+        search_scope=ldap3.SEARCH_SCOPE_WHOLE_SUBTREE,
+        attributes=ldap3.ALL_ATTRIBUTES
+    )
+
+    print(conn.response)
+
+</div>  
 
 <p>The <a href="https://github.com/PSU-OIT-ARC/django-arcutils">django-arcutils</a> package has some useful LDAP stuff in it.</p>
 
